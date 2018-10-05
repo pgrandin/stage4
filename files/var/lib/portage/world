@@ -31,6 +31,7 @@ media-tv/kodi
 media-video/mplayer
 net-analyzer/netcat
 net-analyzer/nmap
+net-analyzer/wireshark
 net-dialup/minicom
 net-dns/bind-tools
 net-fs/samba
