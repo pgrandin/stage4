@@ -24,14 +24,15 @@ mount --make-rslave ${stage4_fs}/dev
 
 mount -t tmpfs tmpfs ${stage4_fs}/var/cache
 mount -t tmpfs tmpfs ${stage4_fs}/var/tmp
+mount -t tmpfs tmpfs ${stage4_fs}/usr/portage
 
 cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
 cp step2.sh ${stage4_fs}/
 
 chroot ${stage4_fs} /bin/bash /step2.sh
 
-for m in var/cache var/tmp dev sys proc; do
+for m in var/cache var/tmp usr/portage dev sys proc; do
 	umount -l ${stage4_fs}/$m
 done
 
-rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no -i gentoo/skylake/stage4builder.rsa" ubuntu@packages.kazer.org:/packages/precision/
+rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/precision/
