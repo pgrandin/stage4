@@ -1,3 +1,5 @@
+set -e
+
 env-update && source /etc/profile
 emerge-webrsync
 
@@ -5,7 +7,7 @@ wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/precisi
 wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/docker_defconfig -O /tmp/docker_defconfig
 wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/kvm_defconfig -O /tmp/kvm_defconfig
 
-kversion="4.17.9"
+kversion="4.14.65"
 FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
