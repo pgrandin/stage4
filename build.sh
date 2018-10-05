@@ -31,8 +31,15 @@ cp step2.sh ${stage4_fs}/
 
 chroot ${stage4_fs} /bin/bash /step2.sh
 
+rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/precision/
+
 for m in var/cache var/tmp usr/portage dev sys proc; do
 	umount -l ${stage4_fs}/$m
 done
 
-rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/precision/
+tag=`date +%Y-%m-%d`
+pushd ${stage4_fs}
+tar cvfz ../stage4-${tag}.tgz .
+popd
+
+rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/precision/
