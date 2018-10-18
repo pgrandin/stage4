@@ -39,5 +39,5 @@ sed -i -e 's/current_theme       default/current_theme       slim-gentoo-simple/
 sed -i -e 's/#focus_password      no/focus_password      yes/g' /etc/slim.conf
 
 useradd pierre
-usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre
+usermod -aG wheel,uucp,audio,video,usb,docker,kvm,vboxusers pierre
 
