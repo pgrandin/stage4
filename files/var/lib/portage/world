@@ -23,6 +23,7 @@ media-gfx/gimp
 media-gfx/gqview
 media-gfx/gscan2pdf
 media-gfx/imagemagick
+media-gfx/inkscape
 media-gfx/sane-backends
 media-gfx/scrot
 media-libs/alsa-oss
