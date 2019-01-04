@@ -7,7 +7,7 @@ wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/precisi
 wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/docker_defconfig -O /tmp/docker_defconfig
 wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/kvm_defconfig -O /tmp/kvm_defconfig
 
-kversion="4.14.65"
+kversion="4.14.83"
 FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
@@ -16,6 +16,7 @@ make defconfig precision_defconfig
 make -j8
 
 perl-cleaner --all
+emerge -q dev-perl/XML-Parser
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
 
@@ -39,5 +40,4 @@ sed -i -e 's/current_theme       default/current_theme       slim-gentoo-simple/
 sed -i -e 's/#focus_password      no/focus_password      yes/g' /etc/slim.conf
 
 useradd pierre
-usermod -aG wheel,uucp,audio,video,usb,docker,kvm,vboxusers pierre
-
+usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre

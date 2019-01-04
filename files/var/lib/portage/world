@@ -1,5 +1,6 @@
 app-admin/pass
 app-admin/syslog-ng
+app-admin/sysstat
 app-arch/p7zip
 app-arch/unrar
 app-backup/rsnapshot
@@ -11,16 +12,21 @@ app-misc/jq
 app-misc/tmux
 app-portage/eix
 app-portage/gentoolkit
+app-text/evince
 dev-embedded/arduino
 dev-libs/openssl
 dev-python/awscli
 dev-python/pip
 dev-python/pylint
 dev-util/astyle
+dev-util/ddd
 dev-util/indent
+dev-vcs/git
 mail-client/thunderbird
+media-gfx/blender
 media-gfx/gimp
 media-gfx/gqview
+media-gfx/graphviz
 media-gfx/gscan2pdf
 media-gfx/imagemagick
 media-gfx/inkscape
@@ -40,6 +46,7 @@ net-im/slack-bin
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/ntp
+net-vpn/openvpn
 net-wireless/bluez
 net-wireless/wireless-tools
 net-wireless/wpa_supplicant
@@ -54,8 +61,10 @@ sys-fs/exfat-utils
 sys-fs/fuse-exfat
 sys-kernel/gentoo-sources
 sys-kernel/linux-firmware
+sys-power/acpi
 sys-power/pm-utils
 sys-power/powertop
+sys-power/suspend
 www-client/chromium
 www-client/firefox
 x11-apps/xbacklight
