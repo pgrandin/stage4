@@ -16,6 +16,8 @@ sudo tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
 rsync -vrtza files/ ${stage4_fs}/
 
+[ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
+
 mount -t proc /proc ${stage4_fs}/proc
 mount --rbind /sys ${stage4_fs}/sys
 mount --make-rslave ${stage4_fs}/sys
