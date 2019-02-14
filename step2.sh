@@ -20,7 +20,7 @@ emerge -q1 dev-perl/XML-Parser
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
 
-cp /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
+cp /usr/share/zoneinfo/America/Denver /etc/localtime
 echo "America/Los_Angeles" > /etc/timezone
 
 echo "root:scrambled" | chpasswd
