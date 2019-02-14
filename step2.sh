@@ -7,7 +7,7 @@ wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/precisi
 wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/docker_defconfig -O /tmp/docker_defconfig
 wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/kvm_defconfig -O /tmp/kvm_defconfig
 
-kversion="4.14.83"
+kversion="4.20.8"
 FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
