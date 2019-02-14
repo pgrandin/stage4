@@ -16,7 +16,7 @@ make defconfig precision_defconfig
 make -j8
 
 perl-cleaner --all
-emerge -q dev-perl/XML-Parser
+emerge -q1 dev-perl/XML-Parser
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
 
