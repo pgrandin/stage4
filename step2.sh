@@ -21,7 +21,7 @@ FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
 
 cp /usr/share/zoneinfo/America/Denver /etc/localtime
-echo "America/Los_Angeles" > /etc/timezone
+echo "America/Denver" > /etc/timezone
 
 echo "root:scrambled" | chpasswd
 
