@@ -14,6 +14,8 @@ cd /usr/src/linux
 cat arch/x86/configs/x86_64_defconfig /tmp/docker_defconfig /tmp/precision_defconfig /tmp/kvm_defconfig > arch/x86/configs/precision_defconfig
 make defconfig precision_defconfig
 make -j8
+cp arch/x86_64/boot/bzImage /boot/linux-4.20.8-gentoo
+make mrproper
 
 perl-cleaner --all
 emerge -q1 dev-perl/XML-Parser
