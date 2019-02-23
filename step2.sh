@@ -21,6 +21,7 @@ perl-cleaner --all
 emerge -q1 dev-perl/XML-Parser
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
+curl -L https://github.com/prusa3d/Slic3r/releases/download/version_1.41.3/Slic3rPE-1.41.3+linux64-full-201902121303.AppImage --output /usr/local/bin/Slic3rPE-1.41.3+linux64-full-201902121303.AppImage
 
 cp /usr/share/zoneinfo/America/Denver /etc/localtime
 echo "America/Denver" > /etc/timezone
