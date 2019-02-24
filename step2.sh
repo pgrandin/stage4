@@ -15,11 +15,12 @@ cat arch/x86/configs/x86_64_defconfig /tmp/docker_defconfig /tmp/precision_defco
 make defconfig precision_defconfig
 make -j8
 cp arch/x86_64/boot/bzImage /boot/linux-4.20.8-gentoo
-make mrproper
 
 perl-cleaner --all
 emerge -q1 dev-perl/XML-Parser
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
+
+make mrproper
 
 curl -L https://github.com/prusa3d/Slic3r/releases/download/version_1.41.3/Slic3rPE-1.41.3+linux64-full-201902121303.AppImage --output /usr/local/bin/Slic3rPE-1.41.3+linux64-full-201902121303.AppImage
 
