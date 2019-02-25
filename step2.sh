@@ -18,6 +18,7 @@ cp arch/x86_64/boot/bzImage /boot/linux-4.20.8-gentoo
 
 perl-cleaner --all
 emerge -q1 dev-perl/XML-Parser
+emerge -NDuq @base
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
 make mrproper
