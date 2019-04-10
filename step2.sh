@@ -22,8 +22,8 @@ make defconfig precision_defconfig
 make -j8
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
+emerge -q1 dev-lang/perl
 perl-cleaner --all
-emerge -q1 dev-perl/XML-Parser
 emerge -NDuq @base
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
 
