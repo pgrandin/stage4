@@ -3,18 +3,24 @@ set -e
 env-update && source /etc/profile
 emerge-webrsync
 
-wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/precision_defconfig -O /tmp/precision_defconfig
-wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/docker_defconfig -O /tmp/docker_defconfig
-wget -q https://raw.githubusercontent.com/pgrandin/kernel-configs/master/kvm_defconfig -O /tmp/kvm_defconfig
+wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
+pushd /tmp/
+unzip kernel-configs.zip
+popd
 
-kversion="4.20.8"
+
+kernel_version=$(ls /usr/portage/sys-kernel/gentoo-sources/|grep 4.20)
+kversion=$(echo "${kernel_version%.*}"|cut -c 16-)
+
+echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
+
 FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
-cat arch/x86/configs/x86_64_defconfig /tmp/docker_defconfig /tmp/precision_defconfig /tmp/kvm_defconfig > arch/x86/configs/precision_defconfig
+cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/*_defconfig > arch/x86/configs/precision_defconfig
 make defconfig precision_defconfig
 make -j8
-cp arch/x86_64/boot/bzImage /boot/linux-4.20.8-gentoo
+cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
 perl-cleaner --all
 emerge -q1 dev-perl/XML-Parser
