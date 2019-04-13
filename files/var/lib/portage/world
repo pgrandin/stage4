@@ -26,6 +26,7 @@ dev-util/indent
 dev-vcs/git
 mail-client/thunderbird
 media-gfx/blender
+media-gfx/feh
 media-gfx/gimp
 media-gfx/gqview
 media-gfx/graphviz
