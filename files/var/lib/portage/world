@@ -10,6 +10,8 @@ app-emulation/docker-compose
 app-emulation/qemu
 app-misc/jq
 app-misc/tmux
+app-pda/ifuse
+app-pda/usbmuxd
 app-portage/eix
 app-portage/gentoolkit
 app-text/evince
