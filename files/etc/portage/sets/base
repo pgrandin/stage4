@@ -13,12 +13,10 @@ dev-vcs/git
 media-libs/alsa-oss
 media-sound/alsa-utils
 net-dns/bind-tools
-net-fs/samba
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/ntp
 net-vpn/openvpn
-net-wireless/bluez
 net-wireless/wireless-tools
 net-wireless/wpa_supplicant
 sys-apps/mlocate
@@ -27,8 +25,6 @@ sys-apps/usbutils
 sys-block/gparted
 sys-boot/efibootmgr
 sys-fs/dosfstools
-sys-fs/exfat-utils
-sys-fs/fuse-exfat
 sys-kernel/gentoo-sources
 sys-kernel/linux-firmware
 sys-power/acpi
