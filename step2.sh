@@ -23,7 +23,7 @@ make -j8
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
 emerge -q1 dev-lang/perl
-emerge -q1 dev-perl/XML-Parser
+FEATURES="-getbinpkg" emerge -q1 XML-Parser
 perl-cleaner --all
 emerge -NDuq @base
 FEATURES="-sandbox -usersandbox" emerge -NDuq @world
