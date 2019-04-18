@@ -26,7 +26,7 @@ emerge -q1 dev-lang/perl
 FEATURES="-getbinpkg" emerge -q1 XML-Parser
 perl-cleaner --all
 emerge -NDuq @base
-FEATURES="-sandbox -usersandbox" emerge -NDuq @world
+FEATURES="-sandbox -usersandbox" emerge -eq @world
 
 make mrproper
 
