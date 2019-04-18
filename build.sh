@@ -41,7 +41,7 @@ done
 
 tag=`date +%Y-%m-%d`
 pushd ${stage4_fs}
-tar cvfz ../stage4-${tag}.tgz .
+tar cfz ../stage4-${tag}.tgz .
 popd
 
 rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/precision/
