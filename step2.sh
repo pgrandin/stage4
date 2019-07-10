@@ -8,9 +8,10 @@ pushd /tmp/
 unzip kernel-configs.zip
 popd
 
+emerge -q eix
+eix-sync
 
-kernel_version=$(ls /usr/portage/sys-kernel/gentoo-sources/|grep 4.20)
-kversion=$(echo "${kernel_version%.*}"|cut -c 16-)
+kversion=$(eix gentoo-source|awk -F'[()]' '/ 4.19/ {version=$2} END{print version}')
 
 echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
 
@@ -45,7 +46,7 @@ rc-update add sshd default
 popd
 
 
-sed -i -e 's/localhost/dell/' /etc/conf.d/hostname 
+sed -i -e 's/localhost/dell/' /etc/conf.d/hostname
 sed -i -e 's/"xdm"/"slim"/' /etc/conf.d/xdm
 sed -i -e 's/#default_user        simone/default_user        pierre/g' /etc/slim.conf
 sed -i -e 's/current_theme       default/current_theme       slim-gentoo-simple/g' /etc/slim.conf
