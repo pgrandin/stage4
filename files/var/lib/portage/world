@@ -15,11 +15,13 @@ app-pda/usbmuxd
 app-portage/eix
 app-portage/gentoolkit
 app-text/evince
+app-vim/pathogen
 dev-embedded/arduino
 dev-libs/openssl
 dev-python/awscli
 dev-python/pip
 dev-python/pylint
+dev-qt/designer
 dev-util/astyle
 dev-util/ddd
 dev-util/indent
