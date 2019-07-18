@@ -51,6 +51,7 @@ net-im/slack-bin
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/ntp
+net-misc/owncloud-client
 net-misc/tigervnc
 net-vpn/openvpn
 net-wireless/bluez
