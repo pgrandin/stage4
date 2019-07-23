@@ -21,6 +21,7 @@ cd /usr/src/linux
 cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/*_defconfig > arch/x86/configs/precision_defconfig
 make defconfig precision_defconfig
 make -j8
+make modules_install
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
 emerge -q1 dev-lang/perl
