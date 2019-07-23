@@ -3,6 +3,11 @@ set -e
 env-update && source /etc/profile
 emerge-webrsync
 
+# Workaround bad symlinks in recent stage3 images
+cd /etc/portage
+rm make.profile
+ln -s ../../usr/portage/profiles/default/linux/amd64/17.1 make.profile
+
 wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
 pushd /tmp/
 unzip kernel-configs.zip
