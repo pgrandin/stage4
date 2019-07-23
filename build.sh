@@ -6,6 +6,11 @@ stage4_fs="stage4_fs"
 
 BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/"
 STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq`
+
+# Temporary override of the stage3 image
+BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/20190714T214502Z/"
+STAGE3="stage3-amd64-20190714T214502Z.tar.xz"
+
 wget -nv ${BASEURL}/$STAGE3
 
 [[ -e ${STAGE3%.*} ]] && rm ${STAGE3%.*}
