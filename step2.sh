@@ -40,7 +40,7 @@ echo "America/Denver" > /etc/timezone
 echo "root:scrambled" | chpasswd
 
 pushd /etc/init.d
-ln -s net.lo net.eth0
+ln -s net.lo net.enp62s0u1u2
 ln -s net.lo net.wlp2s0
 rc-update add net.eth0 default
 rc-update add sshd default
