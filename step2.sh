@@ -3,6 +3,8 @@ set -e
 env-update && source /etc/profile
 emerge-webrsync
 
+eselect profile set default/linux/amd64/17.1
+
 wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
 pushd /tmp/
 unzip kernel-configs.zip
