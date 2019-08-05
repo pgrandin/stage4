@@ -11,7 +11,7 @@ unzip kernel-configs.zip
 popd
 
 emerge -q eix
-eix-sync
+eix-update
 
 kversion=$(eix gentoo-source|awk -F'[()]' '/ 4.19/ {version=$2} END{print version}')
 
