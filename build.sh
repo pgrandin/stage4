@@ -46,4 +46,4 @@ pushd ${stage4_fs}
 tar cfz ../stage4-${tag}.tgz .
 popd
 
-rsync -vrtza stage4-${branch}-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/$branch/
+rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/$branch/
