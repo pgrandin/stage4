@@ -1,5 +1,7 @@
 set -e
 
+branch=$1
+
 env-update && source /etc/profile
 emerge-webrsync
 
@@ -20,8 +22,8 @@ echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywor
 FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
-cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/*_defconfig > arch/x86/configs/precision_defconfig
-make defconfig precision_defconfig
+cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/*_defconfig > arch/x86/configs/${branch}_defconfig
+make defconfig ${branch}_defconfig
 make -j8
 make modules_install
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
