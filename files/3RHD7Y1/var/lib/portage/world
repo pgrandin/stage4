@@ -24,6 +24,7 @@ sys-apps/mlocate
 sys-apps/pciutils
 sys-apps/smartmontools
 sys-apps/usbutils
+sys-block/parted
 sys-boot/efibootmgr
 sys-fs/lvm2
 sys-kernel/gentoo-sources
