@@ -9,6 +9,7 @@ app-misc/tmux
 app-portage/cpuid2cpuflags
 app-portage/eix
 app-portage/gentoolkit
+media-video/mediainfo
 net-analyzer/iftop
 net-dns/avahi
 net-fs/netatalk
