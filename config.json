@@ -1,0 +1,14 @@
+{
+  "configs": [
+  {
+    "host": "DC3217BY",
+    "kernel_configs": ["docker"],
+    "network_interface": "wlp2s0"
+  },
+  {
+    "host": "3RHD7Y1",
+    "kernel_configs": ["docker"],
+    "network_interface": "eno1"
+  }
+  ]
+}

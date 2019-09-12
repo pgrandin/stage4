@@ -32,6 +32,7 @@ mount -t tmpfs tmpfs ${stage4_fs}/usr/portage
 
 cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
 cp step2.sh ${stage4_fs}/
+cp config.json ${stage4_fs}/
 
 chroot ${stage4_fs} /bin/bash /step2.sh ${branch}
 

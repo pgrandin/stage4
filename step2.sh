@@ -12,7 +12,7 @@ pushd /tmp/
 unzip kernel-configs.zip
 popd
 
-emerge -q eix
+emerge -q eix jq
 eix-update
 
 kversion=$(eix gentoo-source|awk -F'[()]' '/ 4.19/ {version=$2} END{print version}')
@@ -22,11 +22,19 @@ echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywor
 FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
-cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/docker_defconfig /tmp/kernel-configs-master/${branch}_defconfig > arch/x86/configs/${branch}_defconfig
+cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${branch}_defconfig
+
+confs=$(cat /config.json | jq --arg HOST $branch -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+for conf in $confs; do
+    cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/${branch}_defconfig
+done
+cat /tmp/kernel-configs-master/${branch}_defconfig >> arch/x86/configs/${branch}_defconfig
 make defconfig ${branch}_defconfig
 make -j8
 make modules_install
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
+
+echo "efibootmgr -c -d /dev/sda -p 1 -l 'linux-${kversion}-gentoo' -L 'Gentoo-${kversion}" > /root/setup_efi.sh
 
 FEATURES="-sandbox -usersandbox" emerge -eq @world
 
@@ -37,10 +45,13 @@ echo "America/Denver" > /etc/timezone
 
 echo "root:scrambled" | chpasswd
 
+netif=$(cat /config.json | jq --arg HOST $branch -r '.configs[] | select (.["host"]==$HOST) | .network_interface')
+
 pushd /etc/init.d
-ln -s net.lo net.eno1
-rc-update add net.eno1 default
+ln -s net.lo net.${netif}
+rc-update add net.${netif} default
 rc-update add sshd default
+rc-update add syslog-ng default
 popd
 
 
