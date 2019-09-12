@@ -34,7 +34,7 @@ make -j8
 make modules_install
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
-echo "efibootmgr -c -d /dev/sda -p 1 -l 'linux-${kversion}-gentoo' -L 'Gentoo-${kversion}" > /root/setup_efi.sh
+echo "efibootmgr -c -d /dev/sda -p 1 -l 'linux-${kversion}-gentoo' -L 'Gentoo-${kversion}'" > /root/setup_efi.sh
 
 FEATURES="-sandbox -usersandbox" emerge -eq @world
 
