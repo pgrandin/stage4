@@ -36,7 +36,7 @@ cp config.json ${stage4_fs}/
 
 chroot ${stage4_fs} /bin/bash /step2.sh ${branch}
 
-rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/$branch/
+rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$branch/
 
 for m in var/cache var/tmp usr/portage dev sys proc; do
 	umount -l ${stage4_fs}/$m
@@ -47,4 +47,4 @@ pushd ${stage4_fs}
 tar cfz ../stage4-${tag}.tgz .
 popd
 
-rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no -i stage4builder.rsa" ubuntu@packages.kazer.org:/packages/$branch/
+rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$branch/
