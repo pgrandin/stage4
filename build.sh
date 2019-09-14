@@ -2,8 +2,9 @@
 
 set -e
 
-stage4_fs="stage4_fs"
-branch=$(git branch | grep \* | cut -d ' ' -f2)
+target=${1:-$(git branch | grep \* | cut -d ' ' -f2)}
+
+stage4_fs=$target
 
 BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/"
 STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq`
@@ -16,7 +17,7 @@ unxz -k $STAGE3
 [[ -d ${stage4_fs} ]] || mkdir ${stage4_fs}
 sudo tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
-rsync -vrtza files/$branch/ ${stage4_fs}/
+rsync -vrtza files/$target/ ${stage4_fs}/
 
 [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
 
@@ -34,9 +35,9 @@ cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
 cp step2.sh ${stage4_fs}/
 cp config.json ${stage4_fs}/
 
-chroot ${stage4_fs} /bin/bash /step2.sh ${branch}
+chroot ${stage4_fs} /bin/bash /step2.sh ${target}
 
-rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$branch/
+rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 for m in var/cache var/tmp usr/portage dev sys proc; do
 	umount -l ${stage4_fs}/$m
@@ -47,4 +48,4 @@ pushd ${stage4_fs}
 tar cfz ../stage4-${tag}.tgz .
 popd
 
-rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$branch/
+rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
