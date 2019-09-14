@@ -7,7 +7,7 @@ target=${1:-$(git branch | grep \* | cut -d ' ' -f2)}
 stage4_fs=$target
 
 BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/"
-STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq`
+STAGE3=`wget -c -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq`
 
 wget -nv ${BASEURL}/$STAGE3
 
