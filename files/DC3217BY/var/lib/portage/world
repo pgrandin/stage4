@@ -29,4 +29,4 @@ sys-kernel/gentoo-sources
 sys-kernel/linux-firmware
 sys-process/iotop
 sys-process/lsof
-sys-process/vixie-cron
+sys-process/cronie
