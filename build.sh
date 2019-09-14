@@ -17,6 +17,7 @@ unxz -k $STAGE3
 [[ -d ${stage4_fs} ]] || mkdir ${stage4_fs}
 sudo tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
+rsync -vrtza files/common/ ${stage4_fs}/
 rsync -vrtza files/$target/ ${stage4_fs}/
 
 [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
