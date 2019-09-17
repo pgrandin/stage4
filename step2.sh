@@ -12,14 +12,14 @@ pushd /tmp/
 unzip kernel-configs.zip
 popd
 
-emerge -q eix jq
+MAKEOPTS="-j$(nproc)" emerge -q eix jq
 eix-update
 
 kversion=$(eix gentoo-source|awk -F'[()]' '/ 4.19/ {version=$2} END{print version}')
 
 echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
 
-FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
+MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 cd /usr/src/linux
 cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${branch}_defconfig
