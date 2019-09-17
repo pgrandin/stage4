@@ -44,7 +44,7 @@ for m in var/cache var/tmp usr/portage dev sys proc; do
 	umount -l ${stage4_fs}/$m
 done
 
-tag=`date +%Y-%m-%d`
+tag="${target}-$(date +%Y-%m-%d)"
 pushd ${stage4_fs}
 tar cfz ../stage4-${tag}.tgz .
 popd
