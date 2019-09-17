@@ -30,7 +30,7 @@ for conf in $confs; do
 done
 cat /tmp/kernel-configs-master/${branch}_defconfig >> arch/x86/configs/${branch}_defconfig
 make defconfig ${branch}_defconfig
-make -j8
+make -j$(nproc)
 make modules_install
 cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
