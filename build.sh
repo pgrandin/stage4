@@ -38,7 +38,7 @@ cp config.json ${stage4_fs}/
 
 chroot ${stage4_fs} /bin/bash /step2.sh ${target}
 
-rsync -vrtza ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+rsync -vrtza --delete ${stage4_fs}/usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 for m in var/cache var/tmp usr/portage dev sys proc; do
 	umount -l ${stage4_fs}/$m
