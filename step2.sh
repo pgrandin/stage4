@@ -57,5 +57,7 @@ popd
 
 sed -i -e "s/localhost/${branch}/" /etc/conf.d/hostname
 
+[ -f /etc/step3.sh ] && /bin/bash /etc/step3.sh
+
 useradd pierre
 usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre
