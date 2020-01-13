@@ -19,6 +19,11 @@
     "host": "P5510",
     "kernel_configs": ["docker", "gvt", "kvm"],
     "network_interface": "enp62s0u1u2"
+  },
+  {
+    "host": "Z390",
+    "kernel_configs": ["docker", "gvt", "kvm"],
+    "network_interface": "eno1"
   }
   ]
 }
