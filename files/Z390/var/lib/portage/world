@@ -66,6 +66,7 @@ sys-devel/gdb
 sys-fs/dosfstools
 sys-fs/exfat-utils
 sys-fs/fuse-exfat
+sys-fs/lvm2
 sys-kernel/gentoo-sources
 sys-kernel/linux-firmware
 sys-power/acpi
