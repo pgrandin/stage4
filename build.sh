@@ -50,3 +50,6 @@ tar cfz ../stage4-${tag}.tgz .
 popd
 
 rsync -vrtza stage4-${tag}.tgz -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+
+mkdir -p overlay/$target
+mv stage4-${tag}.tgz overlay/$target
