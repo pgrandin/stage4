@@ -16,6 +16,7 @@ app-pda/ifuse
 app-pda/usbmuxd
 app-portage/eix
 app-portage/gentoolkit
+app-portage/layman
 app-text/evince
 app-vim/pathogen
 dev-embedded/arduino
