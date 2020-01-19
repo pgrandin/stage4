@@ -10,3 +10,7 @@ layman -S
 layman -a nelson-graca
 emerge -q1 net-dns/avahi
 emerge -q barrier
+
+pushd /etc/libvirt
+patch -p0 < /etc/libvirt.patch
+popd
