@@ -4,3 +4,9 @@ sed -i -e 's/current_theme       default/current_theme       slim-gentoo-simple/
 sed -i -e 's/#focus_password      no/focus_password      yes/g' /etc/slim.conf
 
 rc-update add xdm default
+
+
+layman -S
+layman -a nelson-graca
+emerge -q1 net-dns/avahi
+emerge -q barrier
