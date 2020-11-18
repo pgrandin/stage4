@@ -1,0 +1,57 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: gentoo/stage3:systemd-20201118
+    environment:
+      branch: "Z390"
+    steps:
+      - checkout
+      - run:
+          name: Prepare env
+          command: |
+            rsync -vrtza files/Z390/ /
+
+            [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
+
+            env-update && source /etc/profile
+            emerge-webrsync
+
+            eselect profile set default/linux/amd64/17.1
+
+            emerge -q eix
+            eix-update
+
+      - run:
+          name: Build kernel
+          command: |
+
+            wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
+            pushd /tmp/
+            unzip kernel-configs.zip
+            popd
+
+            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.8/ {version=$2} END{print version}')
+
+            echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
+
+            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
+
+            cd /usr/src/linux
+            cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${branch}_defconfig
+
+            confs=$(cat /config.json | jq --arg HOST $branch -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+            for conf in $confs; do
+                cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/${branch}_defconfig
+            done
+            cat /tmp/kernel-configs-master/${branch}_defconfig >> arch/x86/configs/${branch}_defconfig
+            make defconfig ${branch}_defconfig
+            make -j$(nproc)
+            make modules_install
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build
