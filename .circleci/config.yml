@@ -21,10 +21,10 @@ jobs:
             eix-update
             emerge -q dev-vcs/git
 
-      - checkout
       - run:
-          name: Install custom config
+          name: Get source code
           command: |
+            git clone https://github.com/pgrandin/stage4.git /root/project/
             rsync -vrtza files/Z390/ /
 
       - run:
