@@ -10,7 +10,6 @@ image: &image
 setup_env: &setup_env
     name: Prepare env
     command: |
-      [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
       env-update && source /etc/profile
       emerge-webrsync
       eselect profile set default/linux/amd64/17.1
@@ -21,6 +20,11 @@ setup_env: &setup_env
       cd /root/project
       git checkout config_based
       rsync -vrtza files/Z390/ /
+
+      # Do it once more to have proper portage path
+      env-update && source /etc/profile
+      emerge-webrsync
+      eselect profile set default/linux/amd64/17.1
 
 
 jobs:
@@ -33,7 +37,6 @@ jobs:
       - run:
           name: Build kernel
           command: |
-            emerge-webrsync
             emerge -q eix jq
             eix-update
 
