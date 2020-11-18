@@ -10,8 +10,6 @@ jobs:
       - run:
           name: Prepare env
           command: |
-            rsync -vrtza files/Z390/ /
-
             [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
 
             env-update && source /etc/profile
@@ -24,6 +22,10 @@ jobs:
             emerge -q git
 
       - checkout
+      - run:
+          name: Install custom config
+          command: |
+            rsync -vrtza files/Z390/ /
 
       - run:
           name: Build kernel
