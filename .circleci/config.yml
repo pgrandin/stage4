@@ -73,7 +73,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - /usr/portage/packages/sys-devel/llvm
+            - ./packages/sys-devel/llvm
 
   build_boost:
     << : *setup_gentoo
@@ -87,7 +87,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - /usr/portage/packages/dev-libs/boost
+            - ./packages/dev-libs/boost
 
   synchronize_steps:
     <<: *setup_gentoo
@@ -133,5 +133,9 @@ workflows:
           requires:
               - build_llvm
               - build_boost
-      - build_system
-      - build_world
+      - build_system:
+          requires:
+            - synchronize_steps
+      - build_world:
+          requires:
+            - build_system
