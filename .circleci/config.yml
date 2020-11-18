@@ -26,7 +26,6 @@ jobs:
       - run:
           name: Build kernel
           command: |
-
             wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
             pushd /tmp/
             unzip kernel-configs.zip
