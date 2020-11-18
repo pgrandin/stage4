@@ -4,7 +4,7 @@ image: &image
     docker:
       - image: gentoo/stage3:systemd-20201118
     environment:
-      target: "z390"
+      target: "Z390"
 
 
 setup_env: &setup_env
