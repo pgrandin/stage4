@@ -130,7 +130,7 @@ workflows:
       - build_llvm
       - build_boost
       - synchronize_steps:
-          - requires:
+          requires:
               - build_llvm
               - build_boost
       - build_system
