@@ -19,12 +19,14 @@ jobs:
 
             emerge -q eix
             eix-update
-            emerge -q dev-vcs/git
+            emerge -q dev-vcs/git jq
 
       - run:
           name: Get source code
           command: |
             git clone https://github.com/pgrandin/stage4.git /root/project/
+            cd /root/project
+            git checkout config_based
             rsync -vrtza files/Z390/ /
 
       - run:
@@ -44,7 +46,7 @@ jobs:
             cd /usr/src/linux
             cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${branch}_defconfig
 
-            confs=$(cat /config.json | jq --arg HOST $branch -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+            confs=$(cat /root/project/config.json | jq --arg HOST $branch -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
             for conf in $confs; do
                 cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/${branch}_defconfig
             done
