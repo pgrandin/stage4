@@ -32,6 +32,9 @@ jobs:
       - run:
           name: Build kernel
           command: |
+            emerge-webrsync
+            eselect profile set default/linux/amd64/17.1
+
             wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
             pushd /tmp/
             unzip kernel-configs.zip
@@ -54,6 +57,12 @@ jobs:
             make defconfig ${branch}_defconfig
             make -j$(nproc)
             make modules_install
+
+      - run:
+          name: Build packages
+          command: |
+            emerge --unmerge sys-apps/systemd
+            MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs $(nproc)  --exclude "media-gfx/gscan2pdf media-tv/kodi media-gfx/imagemagick"
 
 workflows:
   version: 2
