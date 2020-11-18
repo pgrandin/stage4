@@ -59,10 +59,22 @@ jobs:
             make modules_install
 
       - run:
-          name: Build packages
+          name: Prepare builds
           command: |
             emerge --unmerge sys-apps/systemd
-            MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs $(nproc)  --exclude "media-gfx/gscan2pdf media-tv/kodi media-gfx/imagemagick dev-lang/go"
+
+      - run:
+          name: Build @system
+          command: |
+            MAKEOPTS="-j$(nproc)" emerge -NDuq @system
+            rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+
+      - run:
+          name: Build partial @world
+          command: |
+            MAKEOPTS="-j$(nproc)" emerge -NDuq @world --exclude "media-gfx/gscan2pdf media-tv/kodi media-gfx/imagemagick dev-lang/go sys-devel/llvm"
+            rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+
 
 workflows:
   version: 2
