@@ -7,7 +7,6 @@ jobs:
     environment:
       branch: "Z390"
     steps:
-      - checkout
       - run:
           name: Prepare env
           command: |
@@ -22,6 +21,9 @@ jobs:
 
             emerge -q eix
             eix-update
+            emerge -q git
+
+      - checkout
 
       - run:
           name: Build kernel
