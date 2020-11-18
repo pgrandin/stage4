@@ -1,35 +1,35 @@
 version: 2
 
-setup_gentoo: &setup_gentoo
-  - attach_workspace:
-        at: /usr/portage
-  - run:
-      name: Prepare env
-      command: |
-        [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
-        env-update && source /etc/profile
-        emerge-webrsync
-        eselect profile set default/linux/amd64/17.1
-        emerge -q dev-vcs/git
-        emerge --unmerge sys-apps/systemd
-
-  - run:
-      name: Get source code
-      command: |
-        git clone https://github.com/pgrandin/stage4.git /root/project/
-        cd /root/project
-        git checkout config_based
-        rsync -vrtza files/Z390/ /
-
-
-jobs:
-  build_kernel:
+image: &image
     docker:
       - image: gentoo/stage3:systemd-20201118
     environment:
       target: "z390"
+
+
+setup_env: &setup_env
+    name: Prepare env
+    command: |
+      [ -d ${stage4_fs}/usr/portage ] || mkdir ${stage4_fs}/usr/portage
+      env-update && source /etc/profile
+      emerge-webrsync
+      eselect profile set default/linux/amd64/17.1
+      emerge -q dev-vcs/git
+      emerge --unmerge sys-apps/systemd
+
+      git clone https://github.com/pgrandin/stage4.git /root/project/
+      cd /root/project
+      git checkout config_based
+      rsync -vrtza files/Z390/ /
+
+
+jobs:
+  build_kernel:
+    <<: *image
     steps:
-      - << : *setup_gentoo
+      - attach_workspace:
+            at: /usr/portage
+      - run: << *setup_env
       - run:
           name: Build kernel
           command: |
@@ -61,12 +61,11 @@ jobs:
             make modules_install
 
   build_llvm:
-    docker:
-      - image: gentoo/stage3:systemd-20201118
-    environment:
-      target: "z390"
+    <<: *image
     steps:
-      - << : *setup_gentoo
+      - attach_workspace:
+            at: /usr/portage
+      - run: << *setup_env
       - run:
           name: Build llvm
           command: |
@@ -77,12 +76,11 @@ jobs:
             - ./packages/sys-devel/llvm
 
   build_boost:
-    docker:
-      - image: gentoo/stage3:systemd-20201118
-    environment:
-      target: "z390"
+    <<: *image
     steps:
-      - << : *setup_gentoo
+      - attach_workspace:
+            at: /usr/portage
+      - run: << *setup_env
       - run:
           name: Build boost
           command: |
@@ -93,12 +91,11 @@ jobs:
             - ./packages/dev-libs/boost
 
   synchronize_steps:
-    docker:
-      - image: gentoo/stage3:systemd-20201118
-    environment:
-      target: "z390"
+    <<: *image
     steps:
-      - << : *setup_gentoo
+      - attach_workspace:
+            at: /usr/portage
+      - run: << *setup_env
       - run:
           name: Build @system
           command: |
@@ -106,12 +103,11 @@ jobs:
             rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
   build_system:
-    docker:
-      - image: gentoo/stage3:systemd-20201118
-    environment:
-      target: "z390"
+    <<: *image
     steps:
-      - << : *setup_gentoo
+      - attach_workspace:
+            at: /usr/portage
+      - run: << *setup_env
       - run:
           name: Build @system
           command: |
@@ -119,12 +115,11 @@ jobs:
             rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
   build_world:
-    docker:
-      - image: gentoo/stage3:systemd-20201118
-    environment:
-      target: "z390"
+    <<: *image
     steps:
-      - << : *setup_gentoo
+      - attach_workspace:
+            at: /usr/portage
+      - run: << *setup_env
       - run:
           name: Build partial @world
           command: |
