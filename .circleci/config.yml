@@ -62,7 +62,7 @@ jobs:
           name: Build packages
           command: |
             emerge --unmerge sys-apps/systemd
-            MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs $(nproc)  --exclude "media-gfx/gscan2pdf media-tv/kodi media-gfx/imagemagick"
+            MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs $(nproc)  --exclude "media-gfx/gscan2pdf media-tv/kodi media-gfx/imagemagick dev-lang/go"
 
 workflows:
   version: 2
