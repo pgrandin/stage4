@@ -19,7 +19,7 @@ jobs:
 
             emerge -q eix
             eix-update
-            emerge -q git
+            emerge -q dev-vcs/git
 
       - checkout
       - run:
