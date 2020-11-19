@@ -90,12 +90,12 @@ jobs:
           name: Build llvm
           command: |
             MAKEOPTS="-j2" emerge -1 llvm
-            rsync -vrtza /var/cache/binpkgs packages/
-            rm packages/Packages
+            rsync -vrtza /var/cache/binpkgs/ binpkgs/
+            rm binpkgs/Packages
       - persist_to_workspace:
           root: .
           paths:
-            - ./packages
+            - ./binpkgs
 
   build_boost:
     <<: *image
@@ -107,12 +107,12 @@ jobs:
           name: Build boost
           command: |
             MAKEOPTS="-j2" emerge -1 dev-libs/boost
-            rsync -vrtza /var/cache/binpkgs packages/
-            rm packages/Packages
+            rsync -vrtza /var/cache/binpkgs/ binpkgs/
+            rm binpkgs/Packages
       - persist_to_workspace:
           root: .
           paths:
-            - ./packages
+            - ./binpkgs
 
   synchronize_steps:
     <<: *image
