@@ -35,12 +35,12 @@ jobs:
             at: /usr/portage
       - run: *setup_env
       - run:
-          name: Build kernel
+          name: Prepare kernel build
           command: |
             emerge -q eix jq
             eix-update
 
-            git clone https://github.com/pgrandin/stage4.git /tmp/kernel-configs-master/
+            git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
             pushd /tmp/kernel-configs-master/
             kconfig_sha=$(git rev-parse HEAD)
             popd
