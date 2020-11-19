@@ -54,20 +54,24 @@ jobs:
           name: Build kernel
           command: |
             kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.8/ {version=$2} END{print version}')
-            echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
-            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
-            cd /usr/src/linux
-            cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${target}_defconfig
+            if [[ -e "/usr/src/linux-${kversion}-gentoo/arch/x86_64/boot/bzImage" ]]; then
+              echo "Found kernel from cache, skipping compilation"
+            else
+              echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
+              MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
-            confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
-            for conf in $confs; do
-                cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/${target}_defconfig
-            done
-            cat /tmp/kernel-configs-master/${target}_defconfig >> arch/x86/configs/${target}_defconfig
-            make defconfig ${target}_defconfig
-            make -j$(nproc)
-            make modules_install
+              cd /usr/src/linux
+              cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${target}_defconfig
+
+              confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+              for conf in $confs; do
+                  cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/${target}_defconfig
+              done
+              cat /tmp/kernel-configs-master/${target}_defconfig >> arch/x86/configs/${target}_defconfig
+              make defconfig ${target}_defconfig
+              make -j$(nproc)
+            fi
       - save_cache:
           paths:
             - /usr/src/
