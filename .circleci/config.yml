@@ -114,7 +114,6 @@ jobs:
     steps:
       - attach_workspace:
             at: /usr/portage
-      - run: *setup_env
       - run:
           name: Synchronize package
           command: |
