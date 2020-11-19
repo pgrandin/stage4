@@ -28,6 +28,8 @@ jobs:
   build_kernel:
     <<: *image
     steps:
+      - attach_workspace:
+            at: /tmp/portage
       - run: *setup_env
       - run:
           name: Prepare kernel build
@@ -41,10 +43,11 @@ jobs:
             popd
 
             echo "${kversion}-${kconfig_sha}" > kernel-config.txt
-            cat kernel-config.txt
+            cp kernel-config.txt /tmp/portage/kernel-config.txt # for workspace persistence
+            cat /tmp/portage/kernel-config.txt
 
       - restore_cache:
-          key: kernel-v1-{{ checksum "kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
       - run:
           name: Build kernel
           command: |
@@ -70,7 +73,12 @@ jobs:
       - save_cache:
           paths:
             - /usr/src/
-          key: kernel-v1-{{ checksum "kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./kernel-config.txt
+
 
   build_llvm:
     <<: *image
@@ -117,10 +125,10 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /var/cache/binpkgs
+            at: /tmp/portage
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
       - run:
           name: Build @system
           command: |
@@ -132,10 +140,10 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /var/cache/binpkgs
+            at: /tmp/portage
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
       - run:
           name: Build partial @world
           command: |
