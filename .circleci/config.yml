@@ -40,16 +40,24 @@ jobs:
             emerge -q eix jq
             eix-update
 
-            wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
-            pushd /tmp/
-            unzip kernel-configs.zip
+            git clone https://github.com/pgrandin/stage4.git /tmp/kernel-configs-master/
+            pushd /tmp/kernel-configs-master/
+            kconfig_sha=$(git rev-parse HEAD)
             popd
 
             kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.8/ {version=$2} END{print version}')
 
             echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
-
             MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
+
+            echo "5.8-${kconfig_sha}" > kernel-config.txt
+            cat kernel-config.txt
+
+      - restore_cache:
+          key: kernel-v1-{{ checksum "kernel-config.txt" }}
+      - run:
+          name: Build kernel
+          command: |
 
             cd /usr/src/linux
             cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${target}_defconfig
@@ -62,6 +70,10 @@ jobs:
             make defconfig ${target}_defconfig
             make -j$(nproc)
             make modules_install
+      - save_cache:
+          paths:
+            - /usr/src/
+          key: kernel-v1-{{ checksum "kernel-config.txt" }}
 
   build_llvm:
     <<: *image
