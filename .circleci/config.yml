@@ -118,7 +118,7 @@ jobs:
       - run:
           name: Build @system
           command: |
-            emerge -NDuq libudev # for elogind
+            emerge -uq libudev # for elogind
             MAKEOPTS="-j$(nproc)" emerge -NDuq @system
             rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
