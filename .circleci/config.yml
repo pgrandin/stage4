@@ -45,11 +45,6 @@ jobs:
             kconfig_sha=$(git rev-parse HEAD)
             popd
 
-            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.8/ {version=$2} END{print version}')
-
-            echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
-            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
-
             echo "${kversion}-${kconfig_sha}" > kernel-config.txt
             cat kernel-config.txt
 
@@ -58,6 +53,9 @@ jobs:
       - run:
           name: Build kernel
           command: |
+            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.8/ {version=$2} END{print version}')
+            echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
+            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
             cd /usr/src/linux
             cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${target}_defconfig
