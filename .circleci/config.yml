@@ -31,8 +31,6 @@ jobs:
   build_kernel:
     <<: *image
     steps:
-      - attach_workspace:
-            at: /usr/portage
       - run: *setup_env
       - run:
           name: Prepare kernel build
