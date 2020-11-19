@@ -21,7 +21,7 @@ setup_env: &setup_env
 upload_packages: &upload_packages
     name: Upload packages
     command: |
-      mv /var/cache/binpkgs/* /var/cache/binpkgs/
+      mv /var/cache/binpkgs/binpkgs/* /var/cache/binpkgs/
       rmdir /var/cache/binpkgs/binpkgs
       emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
@@ -77,7 +77,7 @@ jobs:
             - /usr/src/
           key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
       - persist_to_workspace:
-          root: .
+          root: /tmp/portage/
           paths:
             - ./kernel-config.txt
 
