@@ -104,9 +104,8 @@ jobs:
             at: /usr/portage
       - run: *setup_env
       - run:
-          name: Build @system
+          name: Synchronize package
           command: |
-            rsync -vrtza packages//usr/portage/packages/
             emaint binhost --fix
             rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
