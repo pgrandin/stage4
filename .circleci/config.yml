@@ -74,6 +74,7 @@ jobs:
           command: |
             MAKEOPTS="-j2" emerge -1 llvm
             rsync -vrtza /usr/portage/packages/ packages/
+            rm packages/Packages
       - persist_to_workspace:
           root: .
           paths:
@@ -90,6 +91,7 @@ jobs:
           command: |
             MAKEOPTS="-j2" emerge -1 dev-libs/boost
             rsync -vrtza /usr/portage/packages/ packages/
+            rm packages/Packages
       - persist_to_workspace:
           root: .
           paths:
