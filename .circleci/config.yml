@@ -164,6 +164,7 @@ workflows:
       - build_system:
           requires:
             - synchronize_steps
+            - build_kernel
       - build_world:
           requires:
             - build_system
