@@ -10,22 +10,19 @@ image: &image
 setup_env: &setup_env
     name: Prepare env
     command: |
-      env-update && source /etc/profile
       emerge-webrsync
-      eselect profile set default/linux/amd64/17.1
       emerge -q dev-vcs/git
-      emerge --unmerge sys-apps/systemd
 
       git clone https://github.com/pgrandin/stage4.git /root/project/
       cd /root/project
       git checkout config_based
       rsync -vrtza files/Z390/ /
 
-      # Do it once more to have proper portage path
-      env-update && source /etc/profile
-      emerge-webrsync
-      eselect profile set default/linux/amd64/17.1
-
+upload_packages: &upload_packages
+    name: Upload packages
+    command: |
+      emaint binhost --fix
+      rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 jobs:
   build_kernel:
@@ -85,7 +82,7 @@ jobs:
           name: Build llvm
           command: |
             MAKEOPTS="-j2" emerge -1 llvm
-            rsync -vrtza /usr/portage/packages/ packages/
+            rsync -vrtza /var/cache/binpkgs packages/
             rm packages/Packages
       - persist_to_workspace:
           root: .
@@ -96,13 +93,13 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /usr/portage
+            at: /tmp/portage
       - run: *setup_env
       - run:
           name: Build boost
           command: |
             MAKEOPTS="-j2" emerge -1 dev-libs/boost
-            rsync -vrtza /usr/portage/packages/ packages/
+            rsync -vrtza /var/cache/binpkgs packages/
             rm packages/Packages
       - persist_to_workspace:
           root: .
@@ -113,18 +110,14 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /usr/portage
-      - run:
-          name: Synchronize package
-          command: |
-            emaint binhost --fix
-            rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+            at: /var/cache/binpkgs
+      - run: *upload_packages
 
   build_system:
     <<: *image
     steps:
       - attach_workspace:
-            at: /usr/portage
+            at: /var/cache/binpkgs
       - run: *setup_env
       - restore_cache:
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
@@ -133,13 +126,13 @@ jobs:
           command: |
             emerge -uq libudev # for elogind
             MAKEOPTS="-j$(nproc)" emerge -NDuq @system
-            rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+      - run: *upload_packages
 
   build_world:
     <<: *image
     steps:
       - attach_workspace:
-            at: /usr/portage
+            at: /var/cache/binpkgs
       - run: *setup_env
       - restore_cache:
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
@@ -147,7 +140,7 @@ jobs:
           name: Build partial @world
           command: |
             MAKEOPTS="-j$(nproc)" emerge -NDuq @world --exclude "media-gfx/gscan2pdf media-tv/kodi dev-lang/go"
-            rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+      - run: *upload_packages
 
 workflows:
   version: 2
