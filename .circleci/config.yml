@@ -95,7 +95,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./binpkgs
+            - ./binpkgs/
 
   build_boost:
     <<: *image
@@ -112,7 +112,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./binpkgs
+            - ./binpkgs/
 
   synchronize_steps:
     <<: *image
