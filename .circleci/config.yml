@@ -22,7 +22,7 @@ upload_packages: &upload_packages
     name: Upload packages
     command: |
       emaint binhost --fix
-      rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
+      rsync -vrtza --delete /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 jobs:
   build_kernel:
