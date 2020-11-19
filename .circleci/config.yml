@@ -67,16 +67,17 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /usr/portage
+            at: /tmp/portage
       - run: *setup_env
       - run:
           name: Build llvm
           command: |
-            MAKEOPTS="-j1" emerge -1 llvm
+            MAKEOPTS="-j2" emerge -1 llvm
+            rsync -vrtza /usr/portage/packages/ packages/
       - persist_to_workspace:
           root: .
           paths:
-            - ./packages/sys-devel/llvm
+            - ./packages
 
   build_boost:
     <<: *image
@@ -87,11 +88,12 @@ jobs:
       - run:
           name: Build boost
           command: |
-            MAKEOPTS="-j1" emerge -1 dev-libs/boost
+            MAKEOPTS="-j2" emerge -1 dev-libs/boost
+            rsync -vrtza /usr/portage/packages/ packages/
       - persist_to_workspace:
           root: .
           paths:
-            - ./packages/dev-libs/boost
+            - ./packages
 
   synchronize_steps:
     <<: *image
@@ -102,6 +104,7 @@ jobs:
       - run:
           name: Build @system
           command: |
+            rsync -vrtza packages//usr/portage/packages/
             emaint binhost --fix
             rsync -vrtza --delete /usr/portage/packages -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
