@@ -21,8 +21,10 @@ setup_env: &setup_env
 upload_packages: &upload_packages
     name: Upload packages
     command: |
-      mv /var/cache/binpkgs/binpkgs/* /var/cache/binpkgs/
-      rmdir /var/cache/binpkgs/binpkgs
+      if [[ -d "/var/cache/binpkgs/binpkgs/" ]]; then
+        mv /var/cache/binpkgs/binpkgs/* /var/cache/binpkgs/
+        rmdir /var/cache/binpkgs/binpkgs
+      fi
       emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
