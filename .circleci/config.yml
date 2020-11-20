@@ -5,6 +5,7 @@ image: &image
       - image: gentoo/stage3:systemd-20201118
     environment:
       target: "Z390"
+      FEATURES: "-sandbox -usersandbox"
 
 
 setup_env: &setup_env
