@@ -11,7 +11,8 @@ setup_env: &setup_env
     name: Prepare env
     command: |
       emerge-webrsync
-      emerge -q dev-vcs/git
+      emerge -q dev-vcs/git eix jq
+      eix-update
 
       git clone https://github.com/pgrandin/stage4.git /root/project/
       cd /root/project
@@ -40,9 +41,6 @@ jobs:
       - run:
           name: Prepare kernel build
           command: |
-            emerge -q eix jq
-            eix-update
-
             git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
             pushd /tmp/kernel-configs-master/
             kconfig_sha=$(git rev-parse HEAD)
