@@ -126,7 +126,7 @@ jobs:
             MAKEOPTS="-j$(nproc)" emerge -NDuq @system
       - run: *upload_packages
 
-  build_world:
+    build_set1:
     <<: *image
     steps:
       - attach_workspace:
@@ -137,8 +137,51 @@ jobs:
       - run:
           name: Build partial @world
           command: |
-            MAKEOPTS="-j$(nproc)" emerge -NDuq @world --exclude "media-gfx/gscan2pdf media-tv/kodi dev-lang/go"
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
       - run: *upload_packages
+
+    build_set2:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /tmp/portage
+      - run: *setup_env
+      - restore_cache:
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+      - run:
+          name: Build partial @world
+          command: |
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
+      - run: *upload_packages
+
+    build_firefox_deps:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /tmp/portage
+      - run: *setup_env
+      - restore_cache:
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+      - run:
+          name: Build partial @world
+          command: |
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/firefox
+      - run: *upload_packages
+
+    build_chromium_deps:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /tmp/portage
+      - run: *setup_env
+      - restore_cache:
+          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+      - run:
+          name: Build partial @world
+          command: |
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/chromium
+      - run: *upload_packages
+
 
 workflows:
   version: 2
@@ -155,6 +198,15 @@ workflows:
           requires:
             - synchronize_steps
             - build_kernel
-      - build_world:
+      - build_set1:
           requires:
             - build_system
+      - build_set2:
+          requires:
+            - build_set1
+      - build_firefox_deps:
+          requires:
+            - build_set2
+      - build_chromium_deps:
+          requires:
+            - build_firefox_deps
