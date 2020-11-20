@@ -10,7 +10,6 @@ image: &image
 setup_env: &setup_env
     name: Prepare env
     command: |
-      emerge-webrsync
       emerge -q dev-vcs/git eix jq
       eix-update
 
@@ -32,11 +31,25 @@ upload_packages: &upload_packages
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 jobs:
+  emerge_sync:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run:
+          name: emerge-webrsync
+          command: |
+            emerge-webrsync
+      - persist_to_workspace:
+          root: /var/db/repos/
+          paths:
+            - ./gentoo
+
   build_kernel:
     <<: *image
     steps:
       - attach_workspace:
-            at: /tmp/portage
+            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Prepare kernel build
@@ -47,11 +60,11 @@ jobs:
             popd
 
             echo "${kversion}-${kconfig_sha}" > kernel-config.txt
-            cp kernel-config.txt /tmp/portage/kernel-config.txt # for workspace persistence
-            cat /tmp/portage/kernel-config.txt
+            cp kernel-config.txt /var/db/repos/kernel-config.txt # for workspace persistence
+            cat /var/db/repos/kernel-config.txt
 
       - restore_cache:
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build kernel
           command: |
@@ -77,9 +90,9 @@ jobs:
       - save_cache:
           paths:
             - /usr/src/
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - persist_to_workspace:
-          root: /tmp/portage/
+          root: /var/db/repos/
           paths:
             - ./kernel-config.txt
 
@@ -87,6 +100,8 @@ jobs:
   build_llvm_10:
     <<: *image
     steps:
+      - attach_workspace:
+            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Build llvm 10
@@ -98,6 +113,8 @@ jobs:
   build_llvm_11:
     <<: *image
     steps:
+      - attach_workspace:
+            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Build llvm 11
@@ -109,6 +126,8 @@ jobs:
   build_boost:
     <<: *image
     steps:
+      - attach_workspace:
+            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Build boost
@@ -119,16 +138,18 @@ jobs:
   synchronize_steps:
     <<: *image
     steps:
+      - attach_workspace:
+            at: /var/db/repos/
       - run: *upload_packages
 
   build_system:
     <<: *image
     steps:
       - attach_workspace:
-            at: /tmp/portage
+            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build @system
           command: |
@@ -140,10 +161,10 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /tmp/portage
+            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build partial @world
           command: |
@@ -154,10 +175,10 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /tmp/portage
+            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build partial @world
           command: |
@@ -168,10 +189,10 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /tmp/portage
+            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build partial @world
           command: |
@@ -182,10 +203,10 @@ jobs:
     <<: *image
     steps:
       - attach_workspace:
-            at: /tmp/portage
+            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
-          key: kernel-v1-{{ checksum "/tmp/portage/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build partial @world
           command: |
