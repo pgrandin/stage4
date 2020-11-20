@@ -218,10 +218,19 @@ workflows:
   version: 2
   main:
     jobs:
-      - build_kernel
-      - build_llvm_10
-      - build_llvm_11
-      - build_boost
+      - emerge_sync
+      - build_kernel:
+          requires:
+            - emerge_sync
+      - build_llvm_10:
+          requires:
+            - emerge_sync
+      - build_llvm_11:
+          requires:
+            - emerge_sync
+      - build_boost:
+          requires:
+            - emerge_sync
       - synchronize_steps:
           requires:
               - build_llvm_10
