@@ -108,10 +108,6 @@ jobs:
             MAKEOPTS="-j4" emerge -1 =sys-devel/llvm-${llvm_ver}
             rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm-*-11 -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
 
-
-  eix -e sys-devel/llvm -xl|grep '(10)'| tail -1|cut -f13 -d" "
-
-
   build_boost:
     <<: *image
     steps:
