@@ -126,7 +126,7 @@ jobs:
             MAKEOPTS="-j$(nproc)" emerge -NDuq @system
       - run: *upload_packages
 
-    build_set1:
+  build_set1:
     <<: *image
     steps:
       - attach_workspace:
@@ -140,7 +140,7 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
       - run: *upload_packages
 
-    build_set2:
+  build_set2:
     <<: *image
     steps:
       - attach_workspace:
@@ -154,7 +154,7 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
       - run: *upload_packages
 
-    build_firefox_deps:
+  build_firefox_deps:
     <<: *image
     steps:
       - attach_workspace:
@@ -165,10 +165,10 @@ jobs:
       - run:
           name: Build partial @world
           command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/firefox
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/firefox mail-client/thunderbird
       - run: *upload_packages
 
-    build_chromium_deps:
+  build_chromium_deps:
     <<: *image
     steps:
       - attach_workspace:
