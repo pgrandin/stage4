@@ -17,6 +17,7 @@ setup_env: &setup_env
       cd /root/project
       git checkout config_based
       rsync -vrtza files/Z390/ /
+      rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
 
 upload_packages: &upload_packages
     name: Upload packages
