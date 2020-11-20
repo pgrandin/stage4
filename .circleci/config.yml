@@ -26,6 +26,7 @@ upload_packages: &upload_packages
         mv /var/cache/binpkgs/binpkgs/* /var/cache/binpkgs/
         rmdir /var/cache/binpkgs/binpkgs
       fi
+      rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
       emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
@@ -108,8 +109,6 @@ jobs:
   synchronize_steps:
     <<: *image
     steps:
-      - attach_workspace:
-            at: /var/cache/binpkgs
       - run: *upload_packages
 
   build_system:
