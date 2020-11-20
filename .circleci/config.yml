@@ -91,7 +91,7 @@ jobs:
       - run:
           name: Build llvm 10
           command: |
-            llvm_ver=$(eix -e sys-devel/llvm -xl|grep '(10)'| tail -1|cut -f13 -d" ")
+            llvm_ver=$(eix -e sys-devel/llvm -xl|grep -v '\*\*' | grep '(10)'| tail -1|cut -c 13-|cut -f1 -d" ")
             MAKEOPTS="-j4" emerge -1 =sys-devel/llvm-${llvm_ver}
             rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm-*-10 -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
 
@@ -102,7 +102,7 @@ jobs:
       - run:
           name: Build llvm 11
           command: |
-            llvm_ver=$(eix -e sys-devel/llvm -xl|grep '(11)'| tail -1|cut -f13 -d" ")
+            llvm_ver=$(eix -e sys-devel/llvm -xl|grep -v '\*\*' | grep '(11)'| tail -1|cut -c 13-|cut -f1 -d" ")
             MAKEOPTS="-j4" emerge -1 =sys-devel/llvm-${llvm_ver}
             rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm-*-11 -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
 
