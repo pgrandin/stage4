@@ -88,36 +88,22 @@ jobs:
   build_llvm:
     <<: *image
     steps:
-      - attach_workspace:
-            at: /tmp/portage
       - run: *setup_env
       - run:
           name: Build llvm
           command: |
             MAKEOPTS="-j2" emerge -1 llvm
-            rsync -vrtza /var/cache/binpkgs/ binpkgs/
-            rm binpkgs/Packages
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./binpkgs/
+            rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/sys-devel/
 
   build_boost:
     <<: *image
     steps:
-      - attach_workspace:
-            at: /tmp/portage
       - run: *setup_env
       - run:
           name: Build boost
           command: |
             MAKEOPTS="-j2" emerge -1 dev-libs/boost
-            rsync -vrtza /var/cache/binpkgs/ binpkgs/
-            rm binpkgs/Packages
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./binpkgs/
+            rsync -vrtza --delete /var/cache/binpkgs/dev-libs/boost* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/dev-libs/
 
   synchronize_steps:
     <<: *image
