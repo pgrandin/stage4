@@ -131,7 +131,7 @@ jobs:
             at: /var/db/repos/
       - run: *setup_env
       - run:
-          name: Build llvm 11
+          name: Build rust
           command: |
             MAKEOPTS="-j4" emerge -1 dev-lang/rust
             rsync -vrtza --delete /var/cache/binpkgs/dev-lang/rust* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-lang/
