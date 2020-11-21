@@ -124,6 +124,18 @@ jobs:
             MAKEOPTS="-j4" emerge -1 =sys-devel/llvm-${llvm_ver}
             rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm*-11.* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
 
+  build_rust:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *setup_env
+      - run:
+          name: Build llvm 11
+          command: |
+            MAKEOPTS="-j4" emerge -1 dev-lang/rust
+            rsync -vrtza --delete /var/cache/binpkgs/dev-lang/rust* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-lang/
+
   build_boost:
     <<: *image
     steps:
@@ -232,11 +244,15 @@ workflows:
       - build_boost:
           requires:
             - emerge_sync
+      - build_rust:
+          requires:
+            - emerge_sync
       - synchronize_steps:
           requires:
               - build_llvm_10
               - build_llvm_11
               - build_boost
+              - build_rust
       - build_system:
           requires:
             - synchronize_steps
