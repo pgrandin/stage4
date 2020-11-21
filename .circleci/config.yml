@@ -132,7 +132,7 @@ jobs:
       - run: *setup_env
       - run:
           name: Build rust
-          no_output_timeout: 30m
+          no_output_timeout: 180m
           command: |
             MAKEOPTS="-j4" emerge -1 dev-lang/rust
             rsync -vrtza --delete /var/cache/binpkgs/dev-lang/rust* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-lang/
