@@ -182,6 +182,7 @@ jobs:
       - run:
           name: Build partial @world
           command: |
+            perl-cleaner --reallyall
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
       - run: *upload_packages
 
@@ -196,7 +197,7 @@ jobs:
       - run:
           name: Build partial @world
           command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/virt-manager
       - run: *upload_packages
 
   build_firefox_deps:
