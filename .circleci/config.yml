@@ -182,6 +182,8 @@ jobs:
       - run:
           name: Build partial @world
           command: |
+            emerge -q1 dev-lang/perl
+            FEATURES="-getbinpkg" emerge -q1 XML-Parser
             perl-cleaner --reallyall
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
       - run: *upload_packages
