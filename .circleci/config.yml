@@ -180,24 +180,15 @@ jobs:
       - restore_cache:
           key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
-          name: Build partial @world
+          name: Build partial @world 1/2
           command: |
             emerge -q1 dev-lang/perl
             FEATURES="-getbinpkg" emerge -q1 XML-Parser
             perl-cleaner --reallyall
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
       - run: *upload_packages
-
-  build_set2:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
-          name: Build partial @world
+          name: Build partial @world 2/2
           command: |
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq app-emulation/virt-manager
       - run: *upload_packages
@@ -264,12 +255,9 @@ workflows:
       - build_set1:
           requires:
             - build_system
-      - build_set2:
-          requires:
-            - build_set1
       - build_firefox_deps:
           requires:
-            - build_set2
+            - build_set1
       - build_chromium_deps:
           requires:
             - build_firefox_deps
