@@ -149,6 +149,18 @@ jobs:
             MAKEOPTS="-j2" emerge -1 dev-libs/boost
             rsync -vrtza --delete /var/cache/binpkgs/dev-libs/boost* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-libs/
 
+  build_clang:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *setup_env
+      - run:
+          name: Build clang
+          command: |
+            MAKEOPTS="-j2" emerge -1 sys-devel/clang
+            rsync -vrtza --delete /var/cache/binpkgs/sys-devel/clang* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
+
   synchronize_steps:
     <<: *image
     steps:
@@ -242,12 +254,16 @@ workflows:
       - build_rust:
           requires:
             - emerge_sync
+      - build_clang:
+          requires:
+            - emerge_sync
       - synchronize_steps:
           requires:
               - build_llvm_10
               - build_llvm_11
               - build_boost
               - build_rust
+              - build_clang
       - build_system:
           requires:
             - synchronize_steps
