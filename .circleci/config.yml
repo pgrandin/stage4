@@ -219,6 +219,20 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/firefox mail-client/thunderbird
       - run: *upload_packages
 
+  build_firefox:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *setup_env
+      - restore_cache:
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
+      - run:
+          name: Build Firefox
+          command: |
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq www-client/firefox mail-client/thunderbird
+      - run: *upload_packages
+
   build_chromium_deps:
     <<: *image
     steps:
@@ -233,6 +247,19 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/chromium
       - run: *upload_packages
 
+  build_chromium:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *setup_env
+      - restore_cache:
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
+      - run:
+          name: Build partial @world
+          command: |
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq www-client/chromium
+      - run: *upload_packages
 
 workflows:
   version: 2
@@ -277,3 +304,9 @@ workflows:
       - build_chromium_deps:
           requires:
             - build_firefox_deps
+      - build_firefox:
+          requires:
+            - build_firefox_deps
+      - build_chromium:
+          requires:
+            - build_chromium_deps
