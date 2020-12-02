@@ -262,6 +262,13 @@ jobs:
 workflows:
   version: 2
   main:
+    triggers:
+      - schedule:
+          cron: "32 13 * * *"
+          filters:
+            branches:
+              only:
+                - config_based
     jobs:
       - emerge_sync
       - build_kernel:
