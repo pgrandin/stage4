@@ -135,6 +135,18 @@ jobs:
             MAKEOPTS="-j4" emerge -1 dev-lang/rust
             rsync -vrtza --delete /var/cache/binpkgs/dev-lang/rust* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-lang/
 
+  build_nodejs:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *setup_env
+      - run:
+          name: Build nodejs
+          command: |
+            MAKEOPTS="-j2" emerge -1 net-libs/nodejs
+            rsync -vrtza --delete /var/cache/binpkgs/net-libs/nodejs* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/net-libs/
+
   build_boost:
     <<: *image
     steps:
@@ -280,6 +292,9 @@ workflow_jobs: &workflow_jobs
       - build_clang:
           requires:
             - emerge_sync
+      - build_nodejs:
+          requires:
+            - emerge_sync
       - synchronize_steps:
           requires:
               - build_llvm_10
@@ -287,6 +302,7 @@ workflow_jobs: &workflow_jobs
               - build_boost
               - build_rust
               - build_clang
+              - build_nodejs
       - build_system:
           requires:
             - synchronize_steps
