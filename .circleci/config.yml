@@ -259,16 +259,7 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq www-client/chromium
       - run: *upload_packages
 
-workflows:
-  version: 2
-  main:
-    triggers:
-      - schedule:
-          cron: "32 13 * * *"
-          filters:
-            branches:
-              only:
-                - config_based
+workflow_jobs: &workflow_jobs
     jobs:
       - emerge_sync
       - build_kernel:
@@ -315,3 +306,16 @@ workflows:
       - build_chromium:
           requires:
             - build_chromium_deps
+workflows:
+  version: 2
+  main:
+    <<: *workflow_jobs
+  nightly:
+    triggers:
+      - schedule:
+          cron: "32 13 * * *"
+          filters:
+            branches:
+              only:
+                - config_based
+    <<: *workflow_jobs
