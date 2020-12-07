@@ -268,7 +268,7 @@ jobs:
       - run:
           name: Build partial @world
           command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq www-client/chromium
+            env -u target MAKEOPTS="-j4" emerge -NDuq www-client/chromium
       - run: *upload_packages
 
 workflow_jobs: &workflow_jobs
