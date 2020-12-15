@@ -60,6 +60,7 @@ jobs:
             kconfig_sha=$(git rev-parse HEAD)
             popd
 
+            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.9/ {version=$2} END{print version}')
             echo "${kversion}-${kconfig_sha}" > kernel-config.txt
             cp kernel-config.txt /var/db/repos/kernel-config.txt # for workspace persistence
             cat /var/db/repos/kernel-config.txt
