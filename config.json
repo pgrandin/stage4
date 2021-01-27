@@ -16,6 +16,11 @@
     "network_interface": "eno1"
   },
   {
+    "host": "R710",
+    "kernel_configs": ["docker"],
+    "network_interface": "eno1"
+  },
+  {
     "host": "P5510",
     "kernel_configs": ["docker", "gvt", "kvm"],
     "network_interface": "enp62s0u1u2"
