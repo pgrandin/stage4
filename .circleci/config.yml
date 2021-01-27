@@ -60,7 +60,7 @@ jobs:
             kconfig_sha=$(git rev-parse HEAD)
             popd
 
-            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.9/ {version=$2} END{print version}')
+            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
             echo "${kversion}-${kconfig_sha}" > kernel-config.txt
             cp kernel-config.txt /var/db/repos/kernel-config.txt # for workspace persistence
             cat /var/db/repos/kernel-config.txt
@@ -70,11 +70,12 @@ jobs:
       - run:
           name: Build kernel
           command: |
-            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.9/ {version=$2} END{print version}')
+            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
 
             if [[ -e "/usr/src/linux-${kversion}-gentoo/arch/x86_64/boot/bzImage" ]]; then
               echo "Found kernel from cache, skipping compilation"
             else
+              mkdir /etc/portage/package.keywords/
               echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
               MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
