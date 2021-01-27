@@ -15,7 +15,7 @@ popd
 MAKEOPTS="-j$(nproc)" emerge -q eix jq
 eix-update
 
-kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.8/ {version=$2} END{print version}')
+kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
 
 echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
 
