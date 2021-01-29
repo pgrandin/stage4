@@ -2,7 +2,7 @@ version: 2.1
 
 image: &image
     docker:
-      - image: gentoo/stage3:systemd-20201118
+      - image: pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
     environment:
       target: "Z390"
       FEATURES: "-sandbox -usersandbox"
@@ -16,6 +16,7 @@ setup_env: &setup_env
       git checkout config_based
       rsync -vrtza files/<< parameters.target >>/ /
       rsync -vrtza ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
+      emaint binhost --fix
 
 upload_packages: &upload_packages
     name: Upload packages
@@ -31,17 +32,17 @@ upload_packages: &upload_packages
 
 jobs:
   emerge_sync:
-    <<: *image
+    docker:
+      - image: cimg/base:2020.01
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
+      - checkout
       - run:
           name: build docker image
           command: |
             cd dockr
-            docker build -t pgrandin/stage4-ci:CIRCLE_BUILD_NUM
+            docker build -t pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
             docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
-            docker push pgrandin/stage4-ci:CIRCLE_BUILD_NUM
+            docker push pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
 
   synchronize_steps:
     <<: *image
