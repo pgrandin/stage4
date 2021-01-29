@@ -270,7 +270,7 @@ workflow_jobs: &workflow_jobs
               target: ["Z390", "R710"]
               emerge_flags : ["-NDuqo"]
       - build_package:
-          name: build-<< matrix.package >>
+          name: build-<< matrix.package >>-<< matrix.target >>
           requires:
             - deps-<< matrix.package >>-<< matrix.target >>
           matrix:
@@ -281,7 +281,10 @@ workflow_jobs: &workflow_jobs
               emerge_flags : ["-NDuq"]
       - build_world:
           requires:
-            - build
+            - build-www-client/firefox-<< matrix.target >>
+            - build-www-client/chromium-<< matrix.target >>
+            - build-app-emulation/virt-manager-<< matrix.target >>
+            - build-dev-util/pycharm-community-<< matrix.target >>
           matrix:
             alias: world-
             parameters:
