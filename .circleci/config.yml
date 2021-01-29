@@ -42,7 +42,7 @@ jobs:
       - run:
          name: build docker image
          command: |
-           cd dockr
+           cd ~/project/dockr
            docker build -t pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
            docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
            docker push pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
