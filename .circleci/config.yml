@@ -17,8 +17,8 @@ setup_env: &setup_env
       git clone https://github.com/pgrandin/stage4.git /root/project/
       cd /root/project
       git checkout config_based
-      rsync -vrtza files/${target}/ /
-      rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
+      rsync -vrtza files/<< parameters.target >>/ /
+      rsync -vrtza ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
 
 upload_packages: &upload_packages
     name: Upload packages
@@ -56,6 +56,9 @@ jobs:
 
   build_kernel:
     <<: *image
+    parameters:
+      target:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
@@ -113,6 +116,8 @@ jobs:
     parameters:
       package:
         type: string
+      target:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
@@ -133,6 +138,8 @@ jobs:
   build_package:
     <<: *image
     parameters:
+      target:
+        type: string
       package:
         type: string
       emerge_flags:
@@ -153,6 +160,9 @@ jobs:
 
   build_system:
     <<: *image
+    parameters:
+      target:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
@@ -169,6 +179,9 @@ jobs:
 
   build_world:
     <<: *image
+    parameters:
+      target:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
@@ -205,6 +218,10 @@ workflow_jobs: &workflow_jobs
       - build_kernel:
           requires:
             - emerge_sync
+          matrix:
+            alias: kernel
+            parameters:
+              target: ["Z390", "R710"]
       - build_package_oneshot:
           name: pre-<< matrix.package >>
           requires:
@@ -213,34 +230,48 @@ workflow_jobs: &workflow_jobs
             alias: pre-
             parameters:
               package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*", "sys-devel/gcc*"]
+              target: ["Z390", "R710"]
+            exclude:
+              - "R710": "dev-lang/rust*"
+              - "R710": "net-libs/nodejs*"
       - synchronize_steps:
           requires:
             - pre-
       - build_system:
           requires:
-            - build_kernel
+            - kernel
             - synchronize_steps
+          matrix:
+            alias: build_system
+            parameters:
+              target: ["Z390", "R710"]
       - build_package:
-          name: deps-<< matrix.package >>
+          name: deps-<< matrix.package >>-<< matrix.target >>
           requires:
             - build_system
           matrix:
             alias: deps-
             parameters:
               package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
+              target: ["Z390", "R710"]
               emerge_flags : ["-NDuqo"]
       - build_package:
           name: build-<< matrix.package >>
           requires:
-            - deps-<< matrix.package >>
+            - deps-<< matrix.package >>-<< matrix.target >>
           matrix:
             alias: build
             parameters:
               package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
+              target: ["Z390", "R710"]
               emerge_flags : ["-NDuq"]
       - build_world:
           requires:
             - build
+          matrix:
+            alias: world-
+            parameters:
+              target: ["Z390", "R710"]
 
 workflows:
   version: 2
