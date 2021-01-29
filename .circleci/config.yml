@@ -39,6 +39,8 @@ jobs:
          name: Prepare env
          command: |
            git clone https://github.com/pgrandin/stage4.git ~/project/
+           cd ~/project
+           git checkout docker
       - run:
          name: build docker image
          command: |
