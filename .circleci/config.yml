@@ -127,7 +127,7 @@ jobs:
             category=$(echo $package | cut -d'/' -f1)
             echo "$package -> $atom -> $category"
 
-            MAKEOPTS="-j4" emerge -1 ${atom}
+            MAKEOPTS="-j2" emerge -1 ${atom}
             rsync -vrtza --delete /var/cache/binpkgs/${package} -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/${category}/
 
   build_package:
