@@ -4,7 +4,7 @@ image: &image
     docker:
       - image: gentoo/stage3:systemd-20201118
     environment:
-      target: "R710"
+      target: "Z390"
       FEATURES: "-sandbox -usersandbox"
 
 
@@ -210,7 +210,7 @@ workflow_jobs: &workflow_jobs
             - emerge_sync
           matrix:
             parameters:
-              package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*"]
+              package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*", "sys-devel/gcc*"]
       - synchronize_steps:
           requires:
             - build_package_oneshot
