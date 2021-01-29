@@ -122,71 +122,6 @@ jobs:
             MAKEOPTS="-j4" emerge -1 ${atom}
             rsync -vrtza --delete /var/cache/binpkgs/${package} -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/${category}/
 
-  build_llvm_11:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - run:
-          name: Build llvm 11
-          command: |
-            MAKEOPTS="-j4" emerge -1 llvm:11
-            rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm*-11.* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
-
-  build_rust:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - run:
-          name: Build rust
-          no_output_timeout: 180m
-          command: |
-            if [[ "$target" == "Z390" ]] ; then
-            MAKEOPTS="-j4" emerge -1 dev-lang/rust
-            rsync -vrtza --delete /var/cache/binpkgs/dev-lang/rust* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-lang/
-            fi
-
-  build_nodejs:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - run:
-          name: Build nodejs
-          command: |
-            if [[ "$target" == "Z390" ]] ; then
-            MAKEOPTS="-j2" emerge -1 net-libs/nodejs
-            rsync -vrtza --delete /var/cache/binpkgs/net-libs/nodejs* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/net-libs/
-            fi
-
-  build_boost:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - run:
-          name: Build boost
-          command: |
-            MAKEOPTS="-j2" emerge -1 dev-libs/boost
-            rsync -vrtza --delete /var/cache/binpkgs/dev-libs/boost* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/dev-libs/
-
-  build_clang:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - run:
-          name: Build clang
-          command: |
-            MAKEOPTS="-j2" emerge -1 sys-devel/clang
-            rsync -vrtza --delete /var/cache/binpkgs/sys-devel/clang* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
-
   synchronize_steps:
     <<: *image
     steps:
@@ -207,6 +142,7 @@ jobs:
           command: |
             emerge -uq libudev # for elogind
             MAKEOPTS="-j$(nproc)" emerge -NDuq @system --jobs $(nproc)
+          no_output_timeout: 90m
       - run: *upload_packages
 
   build_set1:
