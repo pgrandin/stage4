@@ -248,7 +248,7 @@ workflow_jobs: &workflow_jobs
       - build_package:
           name: deps-<< matrix.package >>-<< matrix.target >>
           requires:
-            - build_system
+            - build_system-<< matrix.target >>
           matrix:
             alias: deps-
             parameters:
