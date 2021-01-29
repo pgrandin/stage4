@@ -228,6 +228,8 @@ workflow_jobs: &workflow_jobs
       - build_package_deps:
           requires:
             - emerge_sync
+          requires:
+            - build_set1
           matrix:
             parameters:
               package: ["www-client/firefox", "www-client/chromium"]
