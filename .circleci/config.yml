@@ -49,6 +49,9 @@ jobs:
 
   synchronize_steps:
     <<: *image
+    parameters:
+      target:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
@@ -223,7 +226,7 @@ workflow_jobs: &workflow_jobs
             parameters:
               target: ["Z390", "R710"]
       - build_package_oneshot:
-          name: pre-<< matrix.package >>
+          name: pre-<< matrix.package >>-<< matrix.target >>
           requires:
             - emerge_sync
           matrix:
@@ -235,12 +238,23 @@ workflow_jobs: &workflow_jobs
               - "R710": "dev-lang/rust*"
               - "R710": "net-libs/nodejs*"
       - synchronize_steps:
+          name: sync-<< matrix.target >>
           requires:
-            - pre-
+            - pre-sys-devel/llvm*-10.*-<< matrix.target >>
+            - pre-sys-devel/llvm*-11.*-<< matrix.target >>
+            - pre-dev-lang/rust*-<< matrix.target >>
+            - pre-net-libs/nodejs*-<< matrix.target >>
+            - pre-dev-libs/boost*-<< matrix.target >>
+            - pre-sys-devel/clang*-<< matrix.target >>
+            - pre-sys-devel/gcc*-<< matrix.target >>
+          matrix:
+            alias: sync-
+            parameters:
+              target: ["Z390", "R710"]
       - build_system:
           requires:
             - build_kernel-<< matrix.target >>
-            - synchronize_steps
+            - sync-<< matrix.target >>
           matrix:
             alias: build_system
             parameters:
