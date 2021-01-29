@@ -4,7 +4,7 @@ image: &image
     docker:
       - image: gentoo/stage3:systemd-20201118
     environment:
-      target: "R710"
+      target: "Z390"
       FEATURES: "-sandbox -usersandbox"
 
 
@@ -31,6 +31,7 @@ upload_packages: &upload_packages
       emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
+
 jobs:
   emerge_sync:
     <<: *image
@@ -45,6 +46,13 @@ jobs:
           root: /var/db/repos/
           paths:
             - ./gentoo
+
+  synchronize_steps:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *upload_packages
 
   build_kernel:
     <<: *image
@@ -100,7 +108,7 @@ jobs:
             - ./kernel-config.txt
 
 
-  build_package:
+  build_package_oneshot:
     <<: *image
     parameters:
       package:
@@ -122,11 +130,12 @@ jobs:
             MAKEOPTS="-j4" emerge -1 ${atom}
             rsync -vrtza --delete /var/cache/binpkgs/${package} -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/${category}/
 
-
-  build_package_deps:
+  build_package:
     <<: *image
     parameters:
       package:
+        type: string
+      emerge_flags:
         type: string
     steps:
       - attach_workspace:
@@ -135,9 +144,12 @@ jobs:
       - run:
           name: Build one package deps
           command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo << parameters.package >>
+            if [ $(grep "www-client/firefox" /var/lib/portage/world) ]; then
+              env -u target MAKEOPTS="-j$(nproc)" emerge << parameters.emerge_flags >> << parameters.package >>
+            else
+              echo "Package << parameters.package >> not in world file, skipping"
+            fi
       - run: *upload_packages
-
 
   build_system:
     <<: *image
@@ -155,7 +167,7 @@ jobs:
           no_output_timeout: 90m
       - run: *upload_packages
 
-  build_set1:
+  build_world:
     <<: *image
     steps:
       - attach_workspace:
@@ -164,47 +176,28 @@ jobs:
       - restore_cache:
           key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
-          name: Build partial @world 1/2
+          name: Build @world
+          command: |
+            MAKEOPTS="-j$(nproc)" emerge -NDuq @world --jobs $(nproc)
+          no_output_timeout: 90m
+      - run: *upload_packages
+
+  perl_cleanup:
+    <<: *image
+    steps:
+      - attach_workspace:
+            at: /var/db/repos/
+      - run: *setup_env
+      - restore_cache:
+          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
+      - run:
+          name: Clean up perl installation
           command: |
             emerge -q1 dev-lang/perl
             FEATURES="-getbinpkg" emerge -q1 XML-Parser
             perl-cleaner --reallyall
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq dev-util/pycharm-community
-      - run: *upload_packages
-      - run:
-          name: Build partial @world 2/2
-          command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq app-emulation/virt-manager
       - run: *upload_packages
 
-  build_firefox:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
-      - run:
-          name: Build Firefox
-          command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq www-client/firefox mail-client/thunderbird
-      - run: *upload_packages
-
-
-  build_chromium:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
-      - run:
-          name: Build partial @world
-          command: |
-            env -u target MAKEOPTS="-j4" emerge -NDu www-client/chromium
-      - run: *upload_packages
 
 workflow_jobs: &workflow_jobs
     jobs:
@@ -212,31 +205,39 @@ workflow_jobs: &workflow_jobs
       - build_kernel:
           requires:
             - emerge_sync
-      - build_package:
+      - build_package_oneshot:
           requires:
             - emerge_sync
           matrix:
             parameters:
               package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*"]
+      - synchronize_steps:
+          requires:
+            - build_package_oneshot
       - build_system:
           requires:
-            - build_package
             - build_kernel
-      - build_set1:
+            - synchronize_steps
+      - build_package:
+          name: build_package_deps-<< matrix.package >>
           requires:
             - build_system
-      - build_package_deps:
+          matrix:
+            alias: build_package_deps
+            parameters:
+              package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
+              emerge_flags : ["-NDuqo"]
+      - build_package:
           requires:
-            - build_set1
+            - build_package_deps-<< matrix.package >>
           matrix:
             parameters:
-              package: ["www-client/firefox", "www-client/chromium"]
-      - build_firefox:
+              package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
+              emerge_flags : ["-NDuq"]
+      - build_world:
           requires:
-            - build_package_deps-www-client/firefox
-      - build_chromium:
-          requires:
-            - build_package_deps-www-client/chromium
+            - build_package
+
 workflows:
   version: 2
   main:
