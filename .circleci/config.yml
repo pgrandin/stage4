@@ -233,10 +233,10 @@ workflow_jobs: &workflow_jobs
               package: ["www-client/firefox", "www-client/chromium"]
       - build_firefox:
           requires:
-            - build_package_deps
+            - build_package_deps-www-client/firefox
       - build_chromium:
           requires:
-            - build_package_deps
+            - build_package_deps-www-client/chromium
 workflows:
   version: 2
   main:
