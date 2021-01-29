@@ -235,8 +235,8 @@ workflow_jobs: &workflow_jobs
               package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*", "sys-devel/gcc*"]
               target: ["Z390", "R710"]
             exclude:
-              - R710: "dev-lang/rust*"
-              - R710: "net-libs/nodejs*"
+              - R710: dev-lang/rust*
+              - R710: net-libs/nodejs*
       - synchronize_steps:
           name: sync-<< matrix.target >>
           requires:
