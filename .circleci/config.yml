@@ -17,7 +17,7 @@ setup_env: &setup_env
       git clone https://github.com/pgrandin/stage4.git /root/project/
       cd /root/project
       git checkout config_based
-      rsync -vrtza files/R710/ /
+      rsync -vrtza files/${target}/ /
       rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
 
 upload_packages: &upload_packages
@@ -100,17 +100,23 @@ jobs:
             - ./kernel-config.txt
 
 
-  build_llvm_10:
+  build_package:
     <<: *image
     steps:
       - attach_workspace:
             at: /var/db/repos/
       - run: *setup_env
       - run:
-          name: Build llvm 10
+          name: Build one package
           command: |
-            MAKEOPTS="-j4" emerge -1 llvm:10
-            rsync -vrtza --delete /var/cache/binpkgs/sys-devel/llvm*-10.* -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/sys-devel/
+            atom="${package/\*-/:}"
+            atom="${atom/\*/}"
+            atom="${atom/\./}"
+            category=$(echo $package | cut -d'/' -f1)
+            echo "$package -> $atom -> $category"
+
+            MAKEOPTS="-j4" emerge -1 ${atom}
+            rsync -vrtza --delete /var/cache/binpkgs/${package} -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/${category}/
 
   build_llvm_11:
     <<: *image
@@ -283,35 +289,15 @@ workflow_jobs: &workflow_jobs
       - build_kernel:
           requires:
             - emerge_sync
-      - build_llvm_10:
+      - build_package:
           requires:
             - emerge_sync
-      - build_llvm_11:
-          requires:
-            - emerge_sync
-      - build_boost:
-          requires:
-            - emerge_sync
-      - build_rust:
-          requires:
-            - emerge_sync
-      - build_clang:
-          requires:
-            - emerge_sync
-      - build_nodejs:
-          requires:
-            - emerge_sync
-      - synchronize_steps:
-          requires:
-              - build_llvm_10
-              - build_llvm_11
-              - build_boost
-              - build_rust
-              - build_clang
-              - build_nodejs
+          matrix:
+            parameters:
+              package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*"]
       - build_system:
           requires:
-            - synchronize_steps
+            - build_package
             - build_kernel
       - build_set1:
           requires:
