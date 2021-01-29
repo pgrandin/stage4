@@ -102,6 +102,9 @@ jobs:
 
   build_package:
     <<: *image
+    parameters:
+      package:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
