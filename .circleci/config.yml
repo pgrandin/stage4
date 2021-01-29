@@ -196,7 +196,7 @@ jobs:
           name: Build @system
           command: |
             emerge -uq libudev # for elogind
-            MAKEOPTS="-j$(nproc)" emerge -NDuq @system
+            MAKEOPTS="-j$(nproc)" emerge -NDuq @system --jobs $(nproc)
       - run: *upload_packages
 
   build_set1:
