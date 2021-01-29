@@ -206,6 +206,7 @@ workflow_jobs: &workflow_jobs
           requires:
             - emerge_sync
       - build_package_oneshot:
+          name: pre-<< matrix.package >>
           requires:
             - emerge_sync
           matrix:
@@ -229,6 +230,7 @@ workflow_jobs: &workflow_jobs
               package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
               emerge_flags : ["-NDuqo"]
       - build_package:
+          name: build-<< matrix.package >>
           requires:
             - deps-<< matrix.package >>
           matrix:
