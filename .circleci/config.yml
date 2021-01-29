@@ -122,12 +122,22 @@ jobs:
             MAKEOPTS="-j4" emerge -1 ${atom}
             rsync -vrtza --delete /var/cache/binpkgs/${package} -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/${category}/
 
-  synchronize_steps:
+
+  build_package_deps:
     <<: *image
+    parameters:
+      package:
+        type: string
     steps:
       - attach_workspace:
             at: /var/db/repos/
+      - run: *setup_env
+      - run:
+          name: Build one package deps
+          command: |
+            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo << parameters.package >>
       - run: *upload_packages
+
 
   build_system:
     <<: *image
@@ -167,20 +177,6 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq app-emulation/virt-manager
       - run: *upload_packages
 
-  build_firefox_deps:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
-      - run:
-          name: Build partial @world
-          command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/firefox mail-client/thunderbird
-      - run: *upload_packages
-
   build_firefox:
     <<: *image
     steps:
@@ -195,19 +191,6 @@ jobs:
             env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq www-client/firefox mail-client/thunderbird
       - run: *upload_packages
 
-  build_chromium_deps:
-    <<: *image
-    steps:
-      - attach_workspace:
-            at: /var/db/repos/
-      - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
-      - run:
-          name: Build partial @world
-          command: |
-            env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo www-client/chromium
-      - run: *upload_packages
 
   build_chromium:
     <<: *image
@@ -242,18 +225,18 @@ workflow_jobs: &workflow_jobs
       - build_set1:
           requires:
             - build_system
-      - build_firefox_deps:
+      - build_package_deps:
           requires:
-            - build_set1
-      - build_chromium_deps:
-          requires:
-            - build_firefox_deps
+            - emerge_sync
+          matrix:
+            parameters:
+              package: ["www-client/firefox", "www-client/chromium"]
       - build_firefox:
           requires:
-            - build_firefox_deps
+            - build_package_deps
       - build_chromium:
           requires:
-            - build_chromium_deps
+            - build_package_deps
 workflows:
   version: 2
   main:
