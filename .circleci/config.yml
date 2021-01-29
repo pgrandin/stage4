@@ -112,6 +112,7 @@ jobs:
       - run:
           name: Build one package
           command: |
+            package=<< parameters.package >>
             atom="${package/\*-/:}"
             atom="${atom/\*/}"
             atom="${atom/\./}"
