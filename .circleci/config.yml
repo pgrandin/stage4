@@ -128,7 +128,7 @@ jobs:
       - run:
           name: Build one package
           command: |
-            package=<< parameters.package >>
+            package="<< parameters.package >>*"
             atom="${package/\*-/:}"
             atom="${atom/\*/}"
             atom="${atom/\./}"
@@ -232,21 +232,21 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: pre-
             parameters:
-              package: ["sys-devel/llvm*-10.*", "sys-devel/llvm*-11.*", "dev-lang/rust*", "net-libs/nodejs*", "dev-libs/boost*", "sys-devel/clang*", "sys-devel/gcc*"]
+              package: ["sys-devel/llvm*-10.", "sys-devel/llvm*-11.", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/clang", "sys-devel/gcc"]
               target: ["Z390", "R710"]
             exclude:
-              - R710: dev-lang/rust*
-              - R710: net-libs/nodejs*
+              - R710: dev-lang/rust
+              - R710: net-libs/nodejs
       - synchronize_steps:
           name: sync-<< matrix.target >>
           requires:
-            - pre-sys-devel/llvm*-10.*-<< matrix.target >>
-            - pre-sys-devel/llvm*-11.*-<< matrix.target >>
-            - pre-dev-lang/rust*-<< matrix.target >>
-            - pre-net-libs/nodejs*-<< matrix.target >>
-            - pre-dev-libs/boost*-<< matrix.target >>
-            - pre-sys-devel/clang*-<< matrix.target >>
-            - pre-sys-devel/gcc*-<< matrix.target >>
+            - pre-sys-devel/llvm*-10.-<< matrix.target >>
+            - pre-sys-devel/llvm*-11.-<< matrix.target >>
+            - pre-dev-lang/rust-<< matrix.target >>
+            - pre-net-libs/nodejs-<< matrix.target >>
+            - pre-dev-libs/boost-<< matrix.target >>
+            - pre-sys-devel/clang-<< matrix.target >>
+            - pre-sys-devel/gcc-<< matrix.target >>
           matrix:
             alias: sync-
             parameters:
