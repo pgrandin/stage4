@@ -239,7 +239,7 @@ workflow_jobs: &workflow_jobs
             - pre-
       - build_system:
           requires:
-            - build-kernel-<< matrix.target >>
+            - build_kernel-<< matrix.target >>
             - synchronize_steps
           matrix:
             alias: build_system
