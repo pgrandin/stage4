@@ -11,9 +11,6 @@ image: &image
 setup_env: &setup_env
     name: Prepare env
     command: |
-      emerge -q dev-vcs/git eix jq
-      eix-update
-
       git clone https://github.com/pgrandin/stage4.git /root/project/
       cd /root/project
       git checkout config_based
@@ -39,13 +36,12 @@ jobs:
       - attach_workspace:
             at: /var/db/repos/
       - run:
-          name: emerge-webrsync
+          name: build docker image
           command: |
-            emerge-webrsync
-      - persist_to_workspace:
-          root: /var/db/repos/
-          paths:
-            - ./gentoo
+            cd dockr
+            docker build -t pgrandin/stage4-ci:CIRCLE_BUILD_NUM
+            docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
+            docker push pgrandin/stage4-ci:CIRCLE_BUILD_NUM
 
   synchronize_steps:
     <<: *image
