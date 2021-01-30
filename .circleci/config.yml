@@ -168,8 +168,6 @@ jobs:
         type: string
     steps:
       - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build @system
           command: |
@@ -185,8 +183,6 @@ jobs:
         type: string
     steps:
       - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Build @world
           command: |
@@ -196,10 +192,11 @@ jobs:
 
   perl_cleanup:
     <<: *image
+    parameters:
+      target:
+        type: string
     steps:
       - run: *setup_env
-      - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
       - run:
           name: Clean up perl installation
           command: |
@@ -253,10 +250,17 @@ workflow_jobs: &workflow_jobs
             alias: build_system
             parameters:
               target: ["Z390", "R710"]
+      - perl_cleanup:
+          requires:
+            - build_system-<< matrix.target >>
+          matrix:
+            alias: perl_cleanup
+            parameters:
+              target: ["Z390", "R710"]
       - build_package:
           name: deps-<< matrix.package >>-<< matrix.target >>
           requires:
-            - build_system-<< matrix.target >>
+            - perl_cleanup-<< matrix.target >>
           matrix:
             alias: deps-
             parameters:
