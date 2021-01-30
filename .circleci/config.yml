@@ -33,7 +33,7 @@ upload_packages: &upload_packages
 jobs:
   emerge_sync:
     machine:
-      image: cimg/base:2020.01
+      image: ubuntu-2004:202010-01 
     steps:
       - run:
          name: Prepare env
