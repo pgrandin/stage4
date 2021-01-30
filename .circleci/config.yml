@@ -35,6 +35,11 @@ jobs:
     docker:
       - image: cimg/base:2020.01
     steps:
+      - setup_remote_docker:
+          reusable: true
+          exclusive: true
+          docker_layer_caching: true
+          version: 18.09.3
       - run:
          name: Prepare env
          command: |
