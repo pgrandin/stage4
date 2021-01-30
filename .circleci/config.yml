@@ -33,7 +33,7 @@ upload_packages: &upload_packages
 jobs:
   emerge_sync:
     machine:
-      image: ubuntu-2004:202010-01 
+      image: ubuntu-2004:202010-01
     steps:
       - run:
          name: Prepare env
@@ -44,10 +44,14 @@ jobs:
       - run:
          name: build docker image
          command: |
-           cd ~/project/dockr
-           docker build . -t pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
-           docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
-           docker push pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
+           if [ docker pull pgrandin/stage4-ci:$CIRCLE_BUILD_NUM ]; then
+            echo "Image pgrandin/stage4-ci:$CIRCLE_BUILD_NUM already exist, skipping build"
+           else
+            cd ~/project/dockr
+            docker build . -t pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
+            docker login -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
+            docker push pgrandin/stage4-ci:$CIRCLE_BUILD_NUM
+           fi
 
   synchronize_steps:
     <<: *image
@@ -55,8 +59,6 @@ jobs:
       target:
         type: string
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *upload_packages
 
   build_kernel:
@@ -65,8 +67,6 @@ jobs:
       target:
         type: string
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Prepare kernel build
@@ -124,8 +124,6 @@ jobs:
       target:
         type: string
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Build one package
@@ -150,8 +148,6 @@ jobs:
       emerge_flags:
         type: string
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *setup_env
       - run:
           name: Build one package deps
@@ -169,8 +165,6 @@ jobs:
       target:
         type: string
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
           key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
@@ -188,8 +182,6 @@ jobs:
       target:
         type: string
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
           key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
@@ -203,8 +195,6 @@ jobs:
   perl_cleanup:
     <<: *image
     steps:
-      - attach_workspace:
-            at: /var/db/repos/
       - run: *setup_env
       - restore_cache:
           key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
