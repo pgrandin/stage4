@@ -2,7 +2,7 @@ version: 2.1
 
 image: &image
     docker:
-      - image: pgrandin/stage4-ci:`date +'%Y%m%d'`
+      - image: pgrandin/stage4-ci:latest
     environment:
       target: "Z390"
       FEATURES: "-sandbox -usersandbox"
@@ -51,6 +51,8 @@ jobs:
             docker build . -t pgrandin/stage4-ci:`date +'%Y%m%d'`
             docker login -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
             docker push pgrandin/stage4-ci:`date +'%Y%m%d'`
+            docker tag pgrandin/stage4-ci:`date +'%Y%m%d'` pgrandin/stage4-ci:latest
+            docker push pgrandin/stage4-ci:latest
            fi
 
   synchronize_steps:
