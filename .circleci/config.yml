@@ -32,13 +32,9 @@ upload_packages: &upload_packages
 
 jobs:
   emerge_sync:
-    docker:
-      - image: cimg/base:2020.01
+    machine:
+      image: cimg/base:2020.01
     steps:
-      - setup_remote_docker:
-          reusable: true
-          exclusive: true
-          version: 18.09.3
       - run:
          name: Prepare env
          command: |
