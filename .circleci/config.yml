@@ -39,7 +39,6 @@ prepare_kernel_config: &prepare_kernel_config
 
       kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
       echo "${kversion}-${kconfig_sha}" > kernel-config.txt
-      cp kernel-config.txt
 
 jobs:
   emerge_sync:
