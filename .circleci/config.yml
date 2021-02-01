@@ -29,6 +29,17 @@ upload_packages: &upload_packages
       emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
+prepare_kernel_config: &prepare_kernel_config
+    name: Prepare kernel config
+    command: |
+      git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
+      pushd /tmp/kernel-configs-master/
+      kconfig_sha=$(git rev-parse HEAD)
+      popd
+
+      kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
+      echo "${kversion}-${kconfig_sha}" > kernel-config.txt
+      cp kernel-config.txt
 
 jobs:
   emerge_sync:
@@ -70,21 +81,9 @@ jobs:
         type: string
     steps:
       - run: *setup_env
-      - run:
-          name: Prepare kernel build
-          command: |
-            git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
-            pushd /tmp/kernel-configs-master/
-            kconfig_sha=$(git rev-parse HEAD)
-            popd
-
-            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
-            echo "${kversion}-${kconfig_sha}" > kernel-config.txt
-            cp kernel-config.txt /var/db/repos/kernel-config.txt # for workspace persistence
-            cat /var/db/repos/kernel-config.txt
-
+      - run: *prepare_kernel_config
       - restore_cache:
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - run:
           name: Build kernel
           command: |
@@ -111,7 +110,7 @@ jobs:
       - save_cache:
           paths:
             - /usr/src/
-          key: kernel-v1-{{ checksum "/var/db/repos/kernel-config.txt" }}
+          key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - persist_to_workspace:
           root: /var/db/repos/
           paths:
@@ -152,7 +151,7 @@ jobs:
     steps:
       - run: *setup_env
       - run:
-          name: Build one package deps
+          name: Build one package
           command: |
             if [ $(grep "www-client/firefox" /var/lib/portage/world) ]; then
               env -u target MAKEOPTS="-j$(nproc)" emerge << parameters.emerge_flags >> << parameters.package >>
@@ -168,6 +167,9 @@ jobs:
         type: string
     steps:
       - run: *setup_env
+      - run: *prepare_kernel_config
+      - restore_cache:
+          key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - run:
           name: Build @system
           command: |
@@ -183,6 +185,9 @@ jobs:
         type: string
     steps:
       - run: *setup_env
+      - run: *prepare_kernel_config
+      - restore_cache:
+          key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - run:
           name: Build @world
           command: |
