@@ -22,6 +22,7 @@ upload_packages: &upload_packages
     name: Upload packages
     command: |
       rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
+      echo "Regenerating index"
       emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
@@ -114,11 +115,6 @@ jobs:
           paths:
             - /usr/src/
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
-      - persist_to_workspace:
-          root: /var/db/repos/
-          paths:
-            - ./kernel-config.txt
-
 
   build_package_oneshot:
     <<: *image
