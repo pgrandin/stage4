@@ -234,7 +234,7 @@ workflow_jobs: &workflow_jobs
       - build_package_oneshot:
           name: pre-<< matrix.package >>-<< matrix.target >>
           requires:
-            - emerge_sync
+            - update_remote_index-<< matrix.target >>
           matrix:
             alias: pre-
             parameters:
