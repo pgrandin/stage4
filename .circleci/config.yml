@@ -24,9 +24,10 @@ upload_packages: &upload_packages
     command: |
       mv /var/cache/binpkgs /tmp/
       rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/ /var/cache/ -e "ssh -o StrictHostKeyChecking=no"
+      rsync -vrtza /tmp/binpkgs/ /var/cache/binpkgs/
       echo "Regenerating index"
-      emaint binhost --fix
       eclean packages
+      emaint binhost --fix
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 prepare_kernel_config: &prepare_kernel_config
