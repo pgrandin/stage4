@@ -7,7 +7,6 @@ image: &image
       target: "Z390"
       FEATURES: "-sandbox -usersandbox"
 
-
 setup_env: &setup_env
     name: Prepare env
     command: |
@@ -23,9 +22,11 @@ setup_env: &setup_env
 upload_packages: &upload_packages
     name: Upload packages
     command: |
-      rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
+      mv /var/cache/binpkgs /tmp/
+      rsync -vrtza ubuntu@packages.kazer.org:/packages/$target/ /var/cache/ -e "ssh -o StrictHostKeyChecking=no"
       echo "Regenerating index"
       emaint binhost --fix
+      eclean packages
       rsync -vrtza --delete /var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/
 
 prepare_kernel_config: &prepare_kernel_config
@@ -138,7 +139,7 @@ jobs:
             echo "$package -> $atom -> $category"
 
             MAKEOPTS="-j2" emerge -1 ${atom}
-            rsync -vrtza --delete /var/cache/binpkgs/${package} -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/${category}/
+            rsync -vrtza /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/$target/binpkgs/
 
   build_package:
     <<: *image
@@ -236,7 +237,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: pre-
             parameters:
-              package: ["sys-devel/llvm*-10.", "sys-devel/llvm*-11.", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/clang", "sys-devel/gcc", "sys-devel/binutils"]
+              package: ["sys-devel/llvm*-10.", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/clang", "sys-devel/gcc", "sys-devel/binutils"]
               target: ["Z390", "R710"]
             exclude:
               - R710: dev-lang/rust
@@ -245,7 +246,6 @@ workflow_jobs: &workflow_jobs
           name: sync-<< matrix.target >>
           requires:
             - pre-sys-devel/llvm*-10.-<< matrix.target >>
-            - pre-sys-devel/llvm*-11.-<< matrix.target >>
             - pre-dev-lang/rust-<< matrix.target >>
             - pre-net-libs/nodejs-<< matrix.target >>
             - pre-dev-libs/boost-<< matrix.target >>
