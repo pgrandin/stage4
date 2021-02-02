@@ -237,7 +237,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: pre-
             parameters:
-              package: ["sys-devel/llvm*-10.", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/clang", "sys-devel/gcc", "sys-devel/binutils"]
+              package: ["sys-devel/clang*-10.", "sys-devel/clang*-11", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/gcc", "sys-devel/binutils"]
               target: ["Z390", "R710"]
             exclude:
               - R710: dev-lang/rust
@@ -245,11 +245,11 @@ workflow_jobs: &workflow_jobs
       - synchronize_steps:
           name: sync-<< matrix.target >>
           requires:
-            - pre-sys-devel/llvm*-10.-<< matrix.target >>
             - pre-dev-lang/rust-<< matrix.target >>
             - pre-net-libs/nodejs-<< matrix.target >>
             - pre-dev-libs/boost-<< matrix.target >>
-            - pre-sys-devel/clang-<< matrix.target >>
+            - pre-sys-devel/clang*-10-<< matrix.target >>
+            - pre-sys-devel/clang*-11-<< matrix.target >>
             - pre-sys-devel/gcc-<< matrix.target >>
             - pre-sys-devel/binutils-<< matrix.target >>
           matrix:
