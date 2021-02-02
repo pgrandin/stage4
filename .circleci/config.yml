@@ -248,8 +248,8 @@ workflow_jobs: &workflow_jobs
             - pre-dev-lang/rust-<< matrix.target >>
             - pre-net-libs/nodejs-<< matrix.target >>
             - pre-dev-libs/boost-<< matrix.target >>
-            - pre-sys-devel/clang*-10-<< matrix.target >>
-            - pre-sys-devel/clang*-11-<< matrix.target >>
+            - pre-sys-devel/clang*-10.-<< matrix.target >>
+            - pre-sys-devel/clang*-11.-<< matrix.target >>
             - pre-sys-devel/gcc-<< matrix.target >>
             - pre-sys-devel/binutils-<< matrix.target >>
           matrix:
