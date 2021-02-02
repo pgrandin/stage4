@@ -13,7 +13,7 @@ setup_env: &setup_env
     command: |
       git clone https://github.com/pgrandin/stage4.git /root/project/
       cd /root/project
-      git checkout config_based
+      git checkout ${CIRCLE_BRANCH}
       rsync -vrtza files/<< parameters.target >>/ /
 
       echo "rsync -vrtza ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ /var/cache/binpkgs/ -e \"ssh -o StrictHostKeyChecking=no\""
