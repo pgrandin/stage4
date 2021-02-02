@@ -58,7 +58,7 @@ jobs:
             echo "Image pgrandin/stage4-ci:`date +'%Y%m%d'` already exist, skipping build"
            else
             cd ~/project/dockr
-            docker build . -t pgrandin/stage4-ci:`date +'%Y%m%d'`
+            docker build --no-cache=true --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') . -t pgrandin/stage4-ci:`date +'%Y%m%d'`
             docker login -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
             docker push pgrandin/stage4-ci:`date +'%Y%m%d'`
             docker tag pgrandin/stage4-ci:`date +'%Y%m%d'` pgrandin/stage4-ci:latest
