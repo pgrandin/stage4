@@ -138,7 +138,7 @@ jobs:
             category=$(echo $package | cut -d'/' -f1)
             echo "$package -> $atom -> $category"
 
-            MAKEOPTS="-j2" emerge -1 ${atom}
+            MAKEOPTS="-j4" emerge -1 ${atom}
             rsync -vrtza /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ --exclude Packages
 
   build_package:
@@ -237,7 +237,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: pre-
             parameters:
-              package: ["sys-devel/clang*-10.", "sys-devel/clang*-11.", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/gcc", "sys-devel/binutils"]
+              package: ["sys-devel/clang*-10.", "sys-devel/clang*-11.", "dev-util/cmake", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/gcc", "sys-devel/binutils"]
               target: ["Z390", "R710"]
             exclude:
               - R710: dev-lang/rust
@@ -252,6 +252,7 @@ workflow_jobs: &workflow_jobs
             - pre-sys-devel/clang*-11.-<< matrix.target >>
             - pre-sys-devel/gcc-<< matrix.target >>
             - pre-sys-devel/binutils-<< matrix.target >>
+            - pre-dev-util/cmake-<< matrix.target >>
           matrix:
             alias: sync-
             parameters:
