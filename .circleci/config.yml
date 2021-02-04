@@ -148,15 +148,23 @@ jobs:
         type: string
       package:
         type: string
-      emerge_flags:
-        type: string
     steps:
       - run: *setup_env
       - run:
-          name: Build one package
+          name: Build deps for << parameters.package >>
           command: |
-            if [ $(grep "www-client/firefox" /var/lib/portage/world) ]; then
-              env -u target MAKEOPTS="-j$(nproc)" emerge << parameters.emerge_flags >> << parameters.package >>
+            if [ $(grep << parameters.package >> /var/lib/portage/world) ]; then
+              env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo << parameters.package >>
+            else
+              echo "Package << parameters.package >> not in world file, skipping"
+            fi
+          no_output_timeout: 90m
+      - run: *upload_packages
+      - run:
+          name: Build package for << parameters.package >>
+          command: |
+            if [ $(grep << parameters.package >> /var/lib/portage/world) ]; then
+              env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq << parameters.package >>
             else
               echo "Package << parameters.package >> not in world file, skipping"
             fi
@@ -194,6 +202,7 @@ jobs:
       - run:
           name: Build @world
           command: |
+            perl-cleaner --reallyall
             MAKEOPTS="-j$(nproc)" emerge -NDuq @world --jobs $(nproc)
           no_output_timeout: 90m
       - run: *upload_packages
@@ -266,33 +275,15 @@ workflow_jobs: &workflow_jobs
             alias: build_system
             parameters:
               target: ["Z390", "R710"]
-      - perl_cleanup:
+      - build_package:
+          name: build-<< matrix.package >>-<< matrix.target >>
           requires:
             - build_system-<< matrix.target >>
-          matrix:
-            alias: perl_cleanup
-            parameters:
-              target: ["Z390", "R710"]
-      - build_package:
-          name: deps-<< matrix.package >>-<< matrix.target >>
-          requires:
-            - perl_cleanup-<< matrix.target >>
           matrix:
             alias: deps-
             parameters:
               package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
               target: ["Z390", "R710"]
-              emerge_flags : ["-NDuqo"]
-      - build_package:
-          name: build-<< matrix.package >>-<< matrix.target >>
-          requires:
-            - deps-<< matrix.package >>-<< matrix.target >>
-          matrix:
-            alias: build
-            parameters:
-              package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
-              target: ["Z390", "R710"]
-              emerge_flags : ["-NDuq"]
       - build_world:
           requires:
             - build-www-client/firefox-<< matrix.target >>
