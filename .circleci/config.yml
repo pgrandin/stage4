@@ -160,6 +160,7 @@ jobs:
             else
               echo "Package << parameters.package >> not in world file, skipping"
             fi
+          no_output_timeout: 90m
       - run: *upload_packages
 
   build_system:
