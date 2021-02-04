@@ -23,7 +23,7 @@ upload_packages: &upload_packages
     command: |
       mv /var/cache/binpkgs /tmp/
       rsync -vrtza ubuntu@packages.kazer.org:/packages/<< parameters.target >>/ /var/cache/ -e "ssh -o StrictHostKeyChecking=no"
-      rsync -vrtza /tmp/binpkgs/ /var/cache/binpkgs/ && rmdir /tmp/binpkgs/
+      rsync -vrtza /tmp/binpkgs/ /var/cache/binpkgs/ && rm -rf /tmp/binpkgs/
       echo "Regenerating index"
       eclean packages
       emaint binhost --fix
