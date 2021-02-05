@@ -1,6 +1,7 @@
 app-editors/vim
 app-emulation/docker
 app-emulation/docker-compose
+app-emulation/libvirt
 app-misc/jq
 app-misc/tmux
 app-portage/eix
