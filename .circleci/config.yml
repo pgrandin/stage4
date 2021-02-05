@@ -203,7 +203,7 @@ jobs:
           name: Build @world
           command: |
             perl-cleaner --reallyall
-            MAKEOPTS="-j4" emerge -NDuq @world
+            MAKEOPTS="-j2" emerge -NDuq @world
           no_output_timeout: 90m
       - run: *upload_packages
 
