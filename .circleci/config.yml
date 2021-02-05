@@ -154,6 +154,7 @@ jobs:
           name: Build deps for << parameters.package >>
           command: |
             if [ $(grep << parameters.package >> /var/lib/portage/world) ]; then
+              perl-cleaner --reallyall
               env -u target MAKEOPTS="-j4" emerge -NDuqo << parameters.package >>
             else
               echo "Package << parameters.package >> not in world file, skipping"
