@@ -165,7 +165,7 @@ jobs:
           name: Build package for << parameters.package >>
           command: |
             if [ $(grep << parameters.package >> /var/lib/portage/world) ]; then
-              env -u target MAKEOPTS="-j4" emerge -NDuq << parameters.package >>
+              env -u target MAKEOPTS="-j4" emerge -NDu << parameters.package >>
             else
               echo "Package << parameters.package >> not in world file, skipping"
             fi
