@@ -154,7 +154,7 @@ jobs:
           name: Build deps for << parameters.package >>
           command: |
             if [ $(grep << parameters.package >> /var/lib/portage/world) ]; then
-              env -u target MAKEOPTS="-j$(nproc)" emerge -NDuqo << parameters.package >>
+              env -u target MAKEOPTS="-j4" emerge -NDuqo << parameters.package >>
             else
               echo "Package << parameters.package >> not in world file, skipping"
             fi
@@ -164,7 +164,7 @@ jobs:
           name: Build package for << parameters.package >>
           command: |
             if [ $(grep << parameters.package >> /var/lib/portage/world) ]; then
-              env -u target MAKEOPTS="-j$(nproc)" emerge -NDuq << parameters.package >>
+              env -u target MAKEOPTS="-j4" emerge -NDuq << parameters.package >>
             else
               echo "Package << parameters.package >> not in world file, skipping"
             fi
@@ -203,7 +203,7 @@ jobs:
           name: Build @world
           command: |
             perl-cleaner --reallyall
-            MAKEOPTS="-j2" emerge -NDuq @world
+            MAKEOPTS="-j4" emerge -NDuq @world
           no_output_timeout: 90m
       - run: *upload_packages
 
