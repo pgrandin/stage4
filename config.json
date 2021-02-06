@@ -17,7 +17,7 @@
   },
   {
     "host": "R710",
-    "kernel_configs": ["docker"],
+    "kernel_configs": ["docker", "kvm"],
     "network_interface": "eno1"
   },
   {
