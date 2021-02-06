@@ -110,7 +110,7 @@ jobs:
               for conf in $confs; do
                   cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/<< parameters.target >>_defconfig
               done
-              cat /tmp/kernel-configs-master/${target}_defconfig >> arch/x86/configs/<< parameters.target >>_defconfig
+              cat /tmp/kernel-configs-master/<< parameters.target >>_defconfig >> arch/x86/configs/<< parameters.target >>_defconfig
               make defconfig << parameters.target >>_defconfig
               make -j$(nproc)
             fi
