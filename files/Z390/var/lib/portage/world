@@ -75,7 +75,6 @@ sys-power/acpi
 sys-power/pm-utils
 sys-power/powertop
 sys-power/suspend
-www-client/chromium
 www-client/firefox
 x11-apps/xbacklight
 x11-apps/xhost
