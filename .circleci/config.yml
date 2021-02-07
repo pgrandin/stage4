@@ -14,10 +14,6 @@ setup_env: &setup_env
       git checkout ${CIRCLE_BRANCH}
       rsync -vrtza files/<< parameters.target >>/ /
 
-      echo "rsync -vrtza ubuntu@packages.kazer.org:/packages//binpkgs/ /var/cache/binpkgs/ -e \"ssh -o StrictHostKeyChecking=no\""
-      rsync -vrtza ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no"
-      emaint binhost --fix
-
 upload_packages: &upload_packages
     name: Upload packages
     command: |
@@ -114,10 +110,18 @@ jobs:
               make defconfig << parameters.target >>_defconfig
               make -j$(nproc)
             fi
+            make modules_install
+            cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
+            tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/
+            rsync -vrtza /tmp/kernel-${kversion}.tgz -e "ssh -o StrictHostKeyChecking=no" \
+                    ubuntu@packages.kazer.org:/packages/<< parameters.target >>/kernel-${kversion}.tgz
       - save_cache:
           paths:
             - /usr/src/
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
+      - store_artifacts:
+          path: /tmp/kernel-*.tgz
+          destination: kernel.tgz
 
   build_package_oneshot:
     <<: *image
