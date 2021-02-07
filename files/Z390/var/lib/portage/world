@@ -42,14 +42,11 @@ media-gfx/sane-backends
 media-gfx/scrot
 media-libs/alsa-oss
 media-sound/alsa-utils
-media-tv/kodi
 media-video/mplayer
-net-analyzer/nmap
 net-analyzer/wireshark
 net-dialup/minicom
 net-dns/bind-tools
 net-fs/samba
-net-im/slack-bin
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/ntp
