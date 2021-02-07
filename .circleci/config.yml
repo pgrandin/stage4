@@ -110,6 +110,7 @@ jobs:
               make defconfig << parameters.target >>_defconfig
               make -j$(nproc)
             fi
+            cd /usr/src/linux
             make modules_install
             cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
             tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/
