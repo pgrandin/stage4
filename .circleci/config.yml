@@ -99,7 +99,7 @@ jobs:
             if [[ -e "/usr/src/linux-${kversion}-gentoo/arch/x86_64/boot/bzImage" ]]; then
               echo "Found kernel from cache, skipping compilation"
             else
-              [[ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
+              [ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
               echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
               MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
