@@ -307,5 +307,5 @@ workflows:
           filters:
             branches:
               only:
-                - config_based
+                - master
     <<: *workflow_jobs
