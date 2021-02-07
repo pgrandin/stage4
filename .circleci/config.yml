@@ -114,6 +114,7 @@ jobs:
             make modules_install
             cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
             tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/
+            cp /tmp/kernel-${kversion}.tgz /tmp/kernel.tgz
             rsync -vrtza /tmp/kernel-${kversion}.tgz -e "ssh -o StrictHostKeyChecking=no" \
                     ubuntu@packages.kazer.org:/packages/<< parameters.target >>/kernel-${kversion}.tgz
       - save_cache:
@@ -121,7 +122,7 @@ jobs:
             - /usr/src/
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - store_artifacts:
-          path: /tmp/kernel-*.tgz
+          path: /tmp/kernel.tgz
           destination: kernel.tgz
 
   build_package_oneshot:
