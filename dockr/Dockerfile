@@ -1,4 +1,4 @@
-FROM gentoo/stage3:20201118
+FROM gentoo/stage3:uclibc-vanilla-20201118
 
 ARG BUILD_DATE
 LABEL org.label-schema.build-date=$BUILD_DATE
