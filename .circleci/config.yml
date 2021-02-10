@@ -197,7 +197,8 @@ jobs:
       - run: *upload_packages
 
   build_world:
-    <<: *image
+    machine:
+      image: ubuntu-2004:202010-01
     parameters:
       target:
         type: string
