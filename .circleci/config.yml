@@ -217,10 +217,10 @@ jobs:
             wget -nvc ${BASEURL}/$STAGE3
 
             sudo mkdir ${stage4_fs}
-            sudo tar xpf ${STAGE3%.*} -C ${stage4_fs}
+            sudo tar xpf ${HOME}/project/${STAGE3} -C ${stage4_fs}
 
-            rsync -vrtza files/common/ ${stage4_fs}/
-            rsync -vrtza files/{{ parameters.target }}/ ${stage4_fs}/
+            sudo rsync -vrtza files/common/ ${stage4_fs}/
+            sudo rsync -vrtza files/{{ parameters.target }}/ ${stage4_fs}/
 
             sudo mount -t proc /proc ${stage4_fs}/proc
             sudo mount --rbind /sys ${stage4_fs}/sys
@@ -231,8 +231,8 @@ jobs:
             sudo mount -t tmpfs tmpfs ${stage4_fs}/var/cache
             sudo mount -t tmpfs tmpfs ${stage4_fs}/usr/portage
 
-            cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
-            cp chrooted.sh ${stage4_fs}/
+            sudo cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
+            sudo cp chrooted.sh ${stage4_fs}/
 
             sudo chroot ${stage4_fs} /bin/bash /chrooted.sh {{ parameters.target }}
 
