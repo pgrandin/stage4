@@ -9,8 +9,8 @@ image: &image
 setup_env: &setup_env
     name: Prepare env
     command: |
-      git clone https://github.com/pgrandin/stage4.git /root/project/
-      cd /root/project
+      git clone https://github.com/pgrandin/stage4.git ${HOME}/project/
+      cd ${HOME}/project
       git checkout ${CIRCLE_BRANCH}
       rsync -vrtza files/<< parameters.target >>/ /
 
@@ -203,7 +203,39 @@ jobs:
       target:
         type: string
     steps:
-      - run: *setup_env
+      - run:
+          name: Prepare chroot
+          git clone https://github.com/pgrandin/stage4.git ${HOME}/project/
+          cd ${HOME}/project
+          git checkout ${CIRCLE_BRANCH}
+
+          export stage4_fs="/mnt/gentoo"
+          export BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/"
+          export STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq`
+
+          wget -nvc ${BASEURL}/$STAGE3
+
+          mkdir ${stage4_fs}
+          sudo tar xpf ${STAGE3%.*} -C ${stage4_fs}
+
+          rsync -vrtza files/common/ ${stage4_fs}/
+          rsync -vrtza files/{{ parameters.target }}/ ${stage4_fs}/
+
+          sudo mount -t proc /proc ${stage4_fs}/proc
+          sudo mount --rbind /sys ${stage4_fs}/sys
+          sudo mount --make-rslave ${stage4_fs}/sys
+          sudo mount --rbind /dev ${stage4_fs}/dev
+          sudo mount --make-rslave ${stage4_fs}/dev
+
+          sudo mount -t tmpfs tmpfs ${stage4_fs}/var/cache
+          sudo mount -t tmpfs tmpfs ${stage4_fs}/usr/portage
+
+          cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
+          cp chrooted.sh ${stage4_fs}/
+
+          sudo chroot ${stage4_fs} /bin/bash /chrooted.sh {{ parameters.target }}
+
+
       - run: *prepare_kernel_config
       - restore_cache:
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
