@@ -205,6 +205,7 @@ jobs:
     steps:
       - run:
           name: Prepare chroot
+          command: |
           git clone https://github.com/pgrandin/stage4.git ${HOME}/project/
           cd ${HOME}/project
           git checkout ${CIRCLE_BRANCH}
