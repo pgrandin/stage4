@@ -216,7 +216,7 @@ jobs:
 
             wget -nvc ${BASEURL}/$STAGE3
 
-            mkdir ${stage4_fs}
+            sudo mkdir ${stage4_fs}
             sudo tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
             rsync -vrtza files/common/ ${stage4_fs}/
