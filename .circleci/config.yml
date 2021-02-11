@@ -204,7 +204,7 @@ jobs:
         type: string
     steps:
       - run:
-          name: Prepare chroot
+          name: Build @world
           command: |
             git clone https://github.com/pgrandin/stage4.git ${HOME}/project/
             cd ${HOME}/project
@@ -236,17 +236,18 @@ jobs:
 
             sudo chroot ${stage4_fs} /bin/bash /chrooted.sh << parameters.target >>
 
-
-      - run: *prepare_kernel_config
-      - restore_cache:
-          key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - run:
-          name: Build @world
+          name: Upload packages
           command: |
-            perl-cleaner --reallyall
-            MAKEOPTS="-j4" emerge -NDuq @world
+            export stage4_fs="/mnt/gentoo"
+            sudo mv /mnt/gentoo/var/cache/binpkgs /tmp/
+            sudo rsync -vrtza ubuntu@packages.kazer.org:/packages/<< parameters.target >>/ /mnt/gentoo/var/cache/ -e "ssh -o StrictHostKeyChecking=no"
+            sudo rsync -vrtza /tmp/binpkgs/ /mnt/gentoo/var/cache/binpkgs/
+            echo "Regenerating index"
+            sudo chroot ${stage4_fs} /bin/bash /usr/bin/eclean packages
+            sudo chroot ${stage4_fs} /bin/bash emaint /usr/sbin/binhost --fix
+            sudo rsync -vrtza --delete /mnt/gentoo/var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/<< parameters.target >>/
           no_output_timeout: 90m
-      - run: *upload_packages
 
   perl_cleanup:
     <<: *image
