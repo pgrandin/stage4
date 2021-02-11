@@ -7,7 +7,7 @@ emerge-webrsync
 
 eselect profile set default/linux/amd64/17.1
 
-emerge -q1 dev-lang/perl
+emerge -q1 dev-lang/perl app-misc/jq
 FEATURES="-getbinpkg" emerge -q1 XML-Parser
 perl-cleaner --reallyall
 

@@ -233,6 +233,7 @@ jobs:
 
             sudo cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
             sudo cp chrooted.sh ${stage4_fs}/
+            sudo cp config.json ${stage4_fs}/
 
             sudo chroot ${stage4_fs} /bin/bash /chrooted.sh << parameters.target >>
           no_output_timeout: 90m
