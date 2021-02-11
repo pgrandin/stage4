@@ -230,7 +230,6 @@ jobs:
             sudo mount --make-rslave ${stage4_fs}/dev
 
             sudo mount -t tmpfs tmpfs ${stage4_fs}/var/cache
-            sudo mount -t tmpfs tmpfs ${stage4_fs}/usr/portage
 
             sudo cp /etc/resolv.conf ${stage4_fs}/etc/resolv.conf
             sudo cp chrooted.sh ${stage4_fs}/
