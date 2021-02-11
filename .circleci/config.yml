@@ -235,6 +235,7 @@ jobs:
             sudo cp chrooted.sh ${stage4_fs}/
 
             sudo chroot ${stage4_fs} /bin/bash /chrooted.sh << parameters.target >>
+          no_output_timeout: 90m
 
       - run:
           name: Upload packages
