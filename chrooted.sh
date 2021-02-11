@@ -1,0 +1,25 @@
+set -e
+
+target=$1
+
+env-update && source /etc/profile
+emerge-webrsync
+
+eselect profile set default/linux/amd64/17.1
+
+MAKEOPTS="-j$(nproc)" emerge -NDUq @world --jobs $(nproc)
+
+cp /usr/share/zoneinfo/America/Denver /etc/localtime
+echo "America/Denver" > /etc/timezone
+
+echo "root:scrambled" | chpasswd
+
+netif=$(cat /config.json | jq --arg HOST $target -r '.configs[] | select (.["host"]==$HOST) | .network_interface')
+
+pushd /etc/init.d
+ln -s net.lo net.${netif}
+rc-update add net.${netif} default
+rc-update add sshd default
+rc-update add syslog-ng default
+popd
+
