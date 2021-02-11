@@ -7,6 +7,10 @@ emerge-webrsync
 
 eselect profile set default/linux/amd64/17.1
 
+emerge -q1 dev-lang/perl
+FEATURES="-getbinpkg" emerge -q1 XML-Parser
+perl-cleaner --reallyall
+
 MAKEOPTS="-j$(nproc)" emerge -NDUq @world --jobs $(nproc)
 
 cp /usr/share/zoneinfo/America/Denver /etc/localtime
