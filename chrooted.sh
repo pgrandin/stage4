@@ -22,6 +22,5 @@ pushd /etc/init.d
 ln -s net.lo net.${netif}
 rc-update add net.${netif} default
 rc-update add sshd default
-rc-update add syslog-ng default
 popd
 
