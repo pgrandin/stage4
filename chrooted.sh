@@ -16,8 +16,6 @@ MAKEOPTS="-j$(nproc)" emerge -NDUq @world --jobs $(nproc)
 cp /usr/share/zoneinfo/America/Denver /etc/localtime
 echo "America/Denver" > /etc/timezone
 
-echo "root:scrambled" | chpasswd
-
 netif=$(cat /config.json | jq --arg HOST $target -r '.configs[] | select (.["host"]==$HOST) | .network_interface')
 
 pushd /etc/init.d
