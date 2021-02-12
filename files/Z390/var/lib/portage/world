@@ -85,9 +85,3 @@ x11-misc/xclip
 x11-terms/terminator
 x11-themes/slim-themes
 x11-wm/i3
-# Deps only
-dev-qt/qtdeclarative
-dev-qt/qtquickcontrols
-dev-qt/qtwebkit
-dev-qt/qtx11extras
-
