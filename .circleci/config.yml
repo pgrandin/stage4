@@ -241,7 +241,8 @@ jobs:
           command: |
             export stage4_fs="/mnt/gentoo"
             sudo mv /mnt/gentoo/var/cache/binpkgs /tmp/
-            rsync -vrz ubuntu@packages.kazer.org:/packages/<< parameters.target >>/ /mnt/gentoo/var/cache/ -e "ssh -o StrictHostKeyChecking=no"
+            sudo chown circleci /mnt/gentoo/var/cache/
+            rsync -vrzt ubuntu@packages.kazer.org:/packages/<< parameters.target >>/ /mnt/gentoo/var/cache/ -e "ssh -o StrictHostKeyChecking=no"
             sudo rsync -vrtza /tmp/binpkgs/ /mnt/gentoo/var/cache/binpkgs/
             echo "Regenerating index"
             sudo chroot ${stage4_fs} /usr/bin/eclean packages
