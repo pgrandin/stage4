@@ -250,6 +250,7 @@ jobs:
             sudo chroot ${stage4_fs} /usr/sbin/emaint binhost --fix
             rsync -vrtza --delete /mnt/gentoo/var/cache/binpkgs -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/<< parameters.target >>/
           no_output_timeout: 90m
+          when: always
 
   perl_cleanup:
     <<: *image
