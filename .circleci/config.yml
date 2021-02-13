@@ -109,14 +109,9 @@ jobs:
               echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
               MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
+              cat kernel-config.txt /usr/src/linux/arch/x86/configs/x86_64_defconfig > /usr/src/linux/arch/x86/configs/<< parameters.target >>_defconfig
               cd /usr/src/linux
-              cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/<< parameters.target >>_defconfig
 
-              confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="<< parameters.target >>") | .kernel_configs |.[]' )
-              for conf in $confs; do
-                  cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/<< parameters.target >>_defconfig
-              done
-              cat /tmp/kernel-configs-master/<< parameters.target >>_defconfig >> arch/x86/configs/<< parameters.target >>_defconfig
               make defconfig << parameters.target >>_defconfig
               make -j$(nproc)
             fi
