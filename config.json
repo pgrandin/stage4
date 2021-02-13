@@ -17,17 +17,12 @@
   },
   {
     "host": "R710",
-    "kernel_configs": ["docker", "kvm"],
+    "kernel_configs": ["docker", "kvm", "libvirt"],
     "network_interface": "eno1"
   },
   {
-    "host": "P5510",
-    "kernel_configs": ["docker", "gvt", "kvm"],
-    "network_interface": "enp62s0u1u2"
-  },
-  {
     "host": "Z390",
-    "kernel_configs": ["docker", "gvt", "kvm"],
+    "kernel_configs": ["docker", "gvt", "kvm", "libvirt"],
     "network_interface": "eno1"
   }
   ]
