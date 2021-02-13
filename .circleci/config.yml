@@ -36,6 +36,13 @@ prepare_kernel_config: &prepare_kernel_config
       kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
       echo "${kversion}-${kconfig_sha}" > kernel-config.txt
 
+      cat /tmp/kernel-configs-master/common_defconfig > kernel-config.txt
+
+      confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+      for conf in $confs; do
+          cat /tmp/kernel-configs-master/${conf}_defconfig >> kernel-config.txt
+      done
+
 jobs:
   emerge_sync:
     machine:
