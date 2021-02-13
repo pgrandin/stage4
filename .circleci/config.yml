@@ -38,7 +38,7 @@ prepare_kernel_config: &prepare_kernel_config
 
       cat /tmp/kernel-configs-master/common_defconfig > kernel-config.txt
 
-      confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+      confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="<< parameters.target >>") | .kernel_configs |.[]' )
       for conf in $confs; do
           cat /tmp/kernel-configs-master/${conf}_defconfig >> kernel-config.txt
       done
@@ -92,6 +92,9 @@ jobs:
     steps:
       - run: *setup_env
       - run: *prepare_kernel_config
+      - store_artifacts:
+          path: kernel-config.txt
+          destination: kernel-config.txt
       - restore_cache:
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
       - run:
@@ -109,7 +112,7 @@ jobs:
               cd /usr/src/linux
               cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/<< parameters.target >>_defconfig
 
-              confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
+              confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="<< parameters.target >>") | .kernel_configs |.[]' )
               for conf in $confs; do
                   cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/<< parameters.target >>_defconfig
               done
