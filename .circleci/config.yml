@@ -113,7 +113,7 @@ jobs:
             cd /usr/src/linux
             make modules_install
             cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
-            tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/
+            tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/ /usr/src/linux/.config
             cp /tmp/kernel-${kversion}.tgz /tmp/kernel.tgz
             rsync -vrtza /tmp/kernel-${kversion}.tgz -e "ssh -o StrictHostKeyChecking=no" \
                     ubuntu@packages.kazer.org:/packages/<< parameters.target >>/kernel-${kversion}.tgz
