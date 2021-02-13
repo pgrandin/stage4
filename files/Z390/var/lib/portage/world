@@ -78,6 +78,7 @@ x11-apps/xhost
 x11-apps/xrandr
 x11-base/xorg-drivers
 x11-base/xorg-server
+x11-misc/barrier
 x11-misc/i3lock
 x11-misc/py3status
 x11-misc/slim
