@@ -331,18 +331,26 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: deps-
             parameters:
-              package: ["www-client/firefox", "www-client/chromium", "app-emulation/virt-manager", "dev-util/pycharm-community"]
+              package: ["www-client/firefox", "app-emulation/virt-manager", "dev-util/pycharm-community"]
               target: ["Z390", "R710"]
       - build_world:
           requires:
             - build-www-client/firefox-<< matrix.target >>
-            - build-www-client/chromium-<< matrix.target >>
             - build-app-emulation/virt-manager-<< matrix.target >>
             - build-dev-util/pycharm-community-<< matrix.target >>
           matrix:
             alias: world-
             parameters:
               target: ["Z390", "R710"]
+      - build_package_oneshot:
+          name: chromium-<< matrix.target >>
+          requires:
+            - build_system-<< matrix.target >>
+          matrix:
+            alias: chromium-
+            parameters:
+              package: ["www-client/chromium"]
+              target: ["Z390"]
 
 workflows:
   version: 2
