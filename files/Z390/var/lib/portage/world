@@ -69,7 +69,6 @@ sys-fs/lvm2
 sys-kernel/gentoo-sources
 sys-kernel/linux-firmware
 sys-power/acpi
-sys-power/pm-utils
 sys-power/powertop
 sys-power/suspend
 www-client/firefox
