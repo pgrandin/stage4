@@ -141,6 +141,7 @@ jobs:
       - run: *setup_env
       - run:
           name: Build one package
+          no_output_timeout: 120m
           command: |
             package="<< parameters.package >>*"
             atom="${package/\*-/:}"
