@@ -197,7 +197,7 @@ jobs:
           name: Build @system
           command: |
             emerge -uq libudev # for elogind
-            MAKEOPTS="-j$(nproc)" emerge -NDuq @system --jobs $(nproc)
+            MAKEOPTS="-j$(nproc)" emerge -NDuq @system
           no_output_timeout: 90m
       - run: *upload_packages
 
