@@ -153,6 +153,20 @@ jobs:
             MAKEOPTS="-j3" emerge -1 --load-average=18.0 ${atom}
             rsync -vrtza /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ --exclude Packages
 
+      - run:
+          name: Resume for failed builds
+          no_output_timeout: 120m
+          command: |
+            package="<< parameters.package >>*"
+            atom="${package/\*-/:}"
+            atom="${atom/\*/}"
+            atom="${atom/\./}"
+            category=$(echo $package | cut -d'/' -f1)
+            echo "$package -> $atom -> $category"
+
+            MAKEOPTS="-j3" emerge -1 --load-average=18.0 --resume
+            rsync -vrtza /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ --exclude Packages
+
   build_package:
     <<: *image
     parameters:
