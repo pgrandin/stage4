@@ -24,7 +24,6 @@ dev-libs/openssl
 dev-python/awscli
 dev-python/pip
 dev-python/pylint
-dev-qt/designer
 dev-util/astyle
 dev-util/ddd
 dev-util/indent
@@ -50,7 +49,6 @@ net-fs/samba
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/ntp
-net-misc/owncloud-client
 net-misc/tigervnc
 net-vpn/openvpn
 net-wireless/bluez
