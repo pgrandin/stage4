@@ -165,7 +165,7 @@ jobs:
             category=$(echo $package | cut -d'/' -f1)
             echo "$package -> $atom -> $category"
 
-            MAKEOPTS="-j3" emerge -1 --load-average=18.0 --resume
+            MAKEOPTS="-j2" emerge -1 --load-average=14.0 --resume
             rsync -vrtza /var/cache/binpkgs/ -e "ssh -o StrictHostKeyChecking=no" ubuntu@packages.kazer.org:/packages/<< parameters.target >>/binpkgs/ --exclude Packages
 
   build_package:
