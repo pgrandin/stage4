@@ -358,15 +358,6 @@ workflow_jobs: &workflow_jobs
             alias: world-
             parameters:
               target: ["Z390", "R710"]
-      - build_package_oneshot:
-          name: chromium-<< matrix.target >>
-          requires:
-            - build_system-<< matrix.target >>
-          matrix:
-            alias: chromium-
-            parameters:
-              package: ["www-client/chromium"]
-              target: ["Z390"]
 
 workflows:
   version: 2
