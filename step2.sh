@@ -36,7 +36,7 @@ cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
 
 echo "efibootmgr -c -d /dev/sda -p 1 -l 'linux-${kversion}-gentoo' -L 'Gentoo-${kversion}'" > /root/setup_efi.sh
 
-MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs $(nproc)
+MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs 4
 
 make mrproper
 
