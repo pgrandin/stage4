@@ -45,7 +45,6 @@ media-video/mplayer
 net-analyzer/wireshark
 net-dialup/minicom
 net-dns/bind-tools
-net-fs/samba
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/ntp
