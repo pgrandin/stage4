@@ -1,4 +1,4 @@
-FROM gentoo/stage3:systemd-20201118
+FROM gentoo/stage3:systemd-20210702
 
 ARG BUILD_DATE
 LABEL org.label-schema.build-date=$BUILD_DATE
