@@ -101,7 +101,6 @@ jobs:
           name: Build kernel
           command: |
             kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
-            kpath=$(ls /usr/src/)
 
             if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
               echo "Found kernel from cache, skipping compilation"
@@ -109,6 +108,7 @@ jobs:
               [ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
               echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
               MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
+              kpath=$(ls /usr/src/)
 
               cat kernel-config.txt /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig > /usr/src/${kpath}/arch/x86/configs/<< parameters.target >>_defconfig
               cd /usr/src/${kpath}
