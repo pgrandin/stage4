@@ -36,7 +36,7 @@ prepare_kernel_config: &prepare_kernel_config
       kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
       echo "${kversion}-${kconfig_sha}" > kernel-config.txt
 
-      cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/<< parameters.target >>_defconfig > kernel-config.txt
+      cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/<< parameters.target >>_defconfig >> kernel-config.txt
 
       confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="<< parameters.target >>") | .kernel_configs |.[]' )
       for conf in $confs; do
@@ -101,24 +101,25 @@ jobs:
           name: Build kernel
           command: |
             kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
+            kpath=$(ls /usr/src/)
 
-            if [[ -e "/usr/src/linux-${kversion}-gentoo/arch/x86_64/boot/bzImage" ]]; then
+            if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
               echo "Found kernel from cache, skipping compilation"
             else
               [ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
               echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
               MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
-              cat kernel-config.txt /usr/src/linux/arch/x86/configs/x86_64_defconfig > /usr/src/linux/arch/x86/configs/<< parameters.target >>_defconfig
-              cd /usr/src/linux
+              cat kernel-config.txt /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig > /usr/src/${kpath}/arch/x86/configs/<< parameters.target >>_defconfig
+              cd /usr/src/${kpath}
 
               make defconfig << parameters.target >>_defconfig
               make -j$(nproc)
             fi
-            cd /usr/src/linux
+            cd /usr/src/${kpath}
             make modules_install
             cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
-            tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/ /usr/src/linux/.config
+            tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/ /usr/src/${kpath}/.config
             cp /tmp/kernel-${kversion}.tgz /tmp/kernel.tgz
             rsync -vrtza /tmp/kernel-${kversion}.tgz -e "ssh -o StrictHostKeyChecking=no" \
                     ubuntu@packages.kazer.org:/packages/<< parameters.target >>/kernel-${kversion}.tgz
