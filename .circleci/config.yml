@@ -101,6 +101,7 @@ jobs:
           name: Build kernel
           command: |
             kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
+            kpath=$(ls /usr/src/)
 
             if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
               echo "Found kernel from cache, skipping compilation"
