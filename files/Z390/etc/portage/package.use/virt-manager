@@ -1,3 +1,4 @@
 net-misc/spice-gtk usbredir
 app-emulation/libvirt virt-network
 net-dns/dnsmasq script
+media-libs/freetype harfbuzz
