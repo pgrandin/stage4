@@ -215,6 +215,8 @@ jobs:
           name: Build @system
           command: |
             emerge -uq libudev # for elogind
+            FEATURES="-getbinpkg" USE=-truetype emerge --oneshot harfbuzz
+            FEATURES="-getbinpkg" USE=-harfbuzz emerge --oneshot freetype
             MAKEOPTS="-j4" emerge -NDuq @system
           no_output_timeout: 90m
       - run: *upload_packages
