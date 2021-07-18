@@ -211,6 +211,7 @@ jobs:
       - run: *prepare_kernel_config
       - restore_cache:
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
+      - run: *perl_cleaner
       - run:
           name: Build @system
           command: |
