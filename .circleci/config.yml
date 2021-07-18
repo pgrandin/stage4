@@ -46,7 +46,7 @@ prepare_kernel_config: &prepare_kernel_config
 jobs:
   emerge_sync:
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:202104-01
     steps:
       - run:
          name: Prepare env
