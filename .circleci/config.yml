@@ -211,7 +211,12 @@ jobs:
       - run: *prepare_kernel_config
       - restore_cache:
           key: kernel-v1-{{ checksum "kernel-config.txt" }}
-      - run: *perl_cleaner
+      - run:
+          name: Clean up perl installation
+          command: |
+            emerge -q1 dev-lang/perl
+            FEATURES="-getbinpkg" emerge -q1 XML-Parser
+            perl-cleaner --reallyall
       - run:
           name: Build @system
           command: |
