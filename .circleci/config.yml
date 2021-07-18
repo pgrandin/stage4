@@ -217,8 +217,8 @@ jobs:
             emerge -uq libudev # for elogind
             # FEATURES="-getbinpkg" USE=-truetype emerge -1q harfbuzz
             FEATURES="-getbinpkg" USE=-harfbuzz emerge -1q freetype
-            USE="harfbuzz" emerge -1q freetype
-            MAKEOPTS="-j4" emerge -NDuq @system
+            # USE="harfbuzz" emerge -1q freetype
+            USE="harfbuzz" MAKEOPTS="-j4" emerge -NDuq @system
           no_output_timeout: 90m
       - run: *upload_packages
 
