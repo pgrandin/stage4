@@ -364,6 +364,10 @@ workflow_jobs: &workflow_jobs
             - build-www-client/firefox-<< matrix.target >>
             - build-app-emulation/virt-manager-<< matrix.target >>
             - build-dev-util/pycharm-community-<< matrix.target >>
+            - build-dev-www-client/chromium-<< matrix.target >>
+            - build-dev-mail-client/thunderbird-<< matrix.target >>
+            - build-dev-app-emulation/docker-compose-<< matrix.target >>
+            - build-dev-net-misc/owncloud-client-<< matrix.target >>
           matrix:
             alias: world-
             parameters:
