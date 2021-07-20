@@ -357,7 +357,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: deps-
             parameters:
-              package: ["www-client/firefox", "app-emulation/virt-manager", "dev-util/pycharm-community", "www-client/chromium"]
+              package: ["www-client/firefox", "app-emulation/virt-manager", "dev-util/pycharm-community", "www-client/chromium", "mail-client/thunderbird", "app-emulation/docker-compose", "net-misc/owncloud-client" ]
               target: ["Z390", "R710"]
       - build_world:
           requires:
