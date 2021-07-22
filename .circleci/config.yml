@@ -33,7 +33,7 @@ prepare_kernel_config: &prepare_kernel_config
       kconfig_sha=$(git rev-parse HEAD)
       popd
 
-      kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
+      kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
       echo "# Prepared for ${kversion}-${kconfig_sha}" > kernel-config.txt
 
       cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/<< parameters.target >>_defconfig >> kernel-config.txt
@@ -100,7 +100,7 @@ jobs:
       - run:
           name: Build kernel
           command: |
-            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
+            kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
             kpath=$(ls /usr/src/)
 
             if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
