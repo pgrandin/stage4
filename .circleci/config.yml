@@ -282,6 +282,15 @@ jobs:
           no_output_timeout: 90m
           when: always
 
+  build_stage_4:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run:
+          name: Build stage4
+          command: |
+            bash build_stage_4.sh
+
   perl_cleanup:
     <<: *image
     parameters:
@@ -372,6 +381,7 @@ workflow_jobs: &workflow_jobs
             alias: world-
             parameters:
               target: ["Z390", "R710"]
+      - build_stage_4
 
 workflows:
   version: 2

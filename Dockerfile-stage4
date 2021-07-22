@@ -1,0 +1,23 @@
+FROM pgrandin/stage4-ci:20210722
+
+COPY files /stage4/files
+
+ENV stage4_fs="/mnt/gentoo"
+ENV target="Z390"
+
+RUN mkdir ${stage4_fs}
+
+RUN BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/" && \
+    STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq` && \
+    wget -nvc ${BASEURL}/$STAGE3 && \
+    unxz -k $STAGE3 && tar xpf ${STAGE3%.*} -C ${stage4_fs}
+
+RUN rsync -vrtza /stage4/files/common/ ${stage4_fs}/
+RUN rsync -vrtza /stage4/files/$target/ ${stage4_fs}/
+
+COPY step2.sh ${stage4_fs}/
+COPY config.json ${stage4_fs}/
+
+RUN echo "nameserver 8.8.8.8" > ${stage4_fs}/etc/resolv.conf
+
+COPY chroot.sh /chroot.sh
