@@ -7,38 +7,18 @@ emerge-webrsync
 
 eselect profile set default/linux/amd64/17.1
 
-wget -q https://github.com/pgrandin/kernel-configs/archive/master.zip -O /tmp/kernel-configs.zip
-pushd /tmp/
-unzip kernel-configs.zip
-popd
-
-MAKEOPTS="-j$(nproc)" emerge -q eix jq
+MAKEOPTS="-j$(nproc)" emerge -q eix app-misc/jq
 eix-update
 
-kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]5.10/ {version=$2} END{print version}')
-
+kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
 echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
 
-MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
-
-cd /usr/src/linux
-cat arch/x86/configs/x86_64_defconfig /tmp/kernel-configs-master/common_defconfig > arch/x86/configs/${branch}_defconfig
-
-confs=$(cat /config.json | jq --arg HOST $branch -r '.configs[] | select (.["host"]==$HOST) | .kernel_configs |.[]' )
-for conf in $confs; do
-    cat /tmp/kernel-configs-master/${conf}_defconfig >> arch/x86/configs/${branch}_defconfig
-done
-cat /tmp/kernel-configs-master/${branch}_defconfig >> arch/x86/configs/${branch}_defconfig
-make defconfig ${branch}_defconfig
-make -j$(nproc)
-make modules_install
-cp arch/x86_64/boot/bzImage /boot/linux-${kversion}-gentoo
+wget http://packages.kazer.org:8080/Z390/kernel-${kversion}.tgz -O /tmp/kernel.tgz
+tar xvfz /tmp/kernel.tgz -C /
 
 echo "efibootmgr -c -d /dev/sda -p 1 -l 'linux-${kversion}-gentoo' -L 'Gentoo-${kversion}'" > /root/setup_efi.sh
 
 MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs 4
-
-make mrproper
 
 cp /usr/share/zoneinfo/America/Denver /etc/localtime
 echo "America/Denver" > /etc/timezone
