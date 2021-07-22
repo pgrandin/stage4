@@ -287,6 +287,12 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - run:
+         name: Prepare env
+         command: |
+           git clone https://github.com/pgrandin/stage4.git ~/project/
+           cd ~/project
+           git checkout ${CIRCLE_BRANCH}
+      - run:
           name: Build stage4
           command: |
             bash build_stage_4.sh
