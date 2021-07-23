@@ -1,5 +1,7 @@
 target=$1
 
+echo "Building for target ${target}"
+
 mount -t proc /proc ${stage4_fs}/proc
 mount --rbind /dev ${stage4_fs}/dev
 
