@@ -393,6 +393,12 @@ workflow_jobs: &workflow_jobs
             parameters:
               target: ["Z390", "R710"]
       - build_stage_4
+          requires:
+            - build-world-<< matrix.target >>
+          matrix:
+            alias: stage4-
+            parameters:
+              target: ["Z390", "R710"]
 
 workflows:
   version: 2
