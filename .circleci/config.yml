@@ -295,7 +295,7 @@ jobs:
       - run:
           name: Build stage4
           command: |
-            bash build_stage_4.sh
+            bash build_stage4.sh
 
   perl_cleanup:
     <<: *image
