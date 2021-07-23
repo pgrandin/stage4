@@ -15,6 +15,9 @@ echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywor
 
 wget http://packages.kazer.org:8080/Z390/kernel-${kversion}.tgz -O /tmp/kernel.tgz
 tar xvfz /tmp/kernel.tgz -C /
+pushd /usr/src
+ln -s linux-${kversion}-gentoo linux
+popd
 
 echo "efibootmgr -c -d /dev/sda -p 1 -l 'linux-${kversion}-gentoo' -L 'Gentoo-${kversion}'" > /root/setup_efi.sh
 
