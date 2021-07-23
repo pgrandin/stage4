@@ -12,6 +12,7 @@ eix-update
 
 kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
 echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
+MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
 
 wget http://packages.kazer.org:8080/Z390/kernel-${kversion}.tgz -O /tmp/kernel.tgz
 tar xvfz /tmp/kernel.tgz -C /
