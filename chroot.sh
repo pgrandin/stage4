@@ -7,5 +7,5 @@ umount -l ${stage4_fs}/dev
 umount -l ${stage4_fs}/proc
 
 pushd ${stage4_fs}
-tar cfz /stage4-.tgz .
+tar cfz /stage4.tgz .
 popd
