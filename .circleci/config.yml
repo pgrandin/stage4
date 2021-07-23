@@ -298,7 +298,7 @@ jobs:
             cd ~/project
             bash build_stage4.sh
       - store_artifacts:
-          path: /project/stage4.tgz
+          path: stage4.tgz
           destination: stage4.tgz
 
 
