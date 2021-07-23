@@ -3,7 +3,7 @@ FROM pgrandin/stage4-ci:20210722
 COPY files /stage4/files
 
 ENV stage4_fs="/mnt/gentoo"
-ENV target="Z390"
+ARG target="Z390"
 
 RUN mkdir ${stage4_fs}
 

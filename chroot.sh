@@ -1,7 +1,9 @@
+target=$1
+
 mount -t proc /proc ${stage4_fs}/proc
 mount --rbind /dev ${stage4_fs}/dev
 
-chroot /mnt/gentoo/ /bin/bash /step2.sh Z390
+chroot /mnt/gentoo/ /bin/bash /step2.sh $target
 
 umount -l ${stage4_fs}/dev
 umount -l ${stage4_fs}/proc

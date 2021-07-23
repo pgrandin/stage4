@@ -285,6 +285,9 @@ jobs:
   build_stage_4:
     machine:
       image: ubuntu-2004:202010-01
+    parameters:
+      target:
+        type: string
     steps:
       - run:
          name: Prepare env
