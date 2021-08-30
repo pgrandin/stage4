@@ -221,9 +221,8 @@ jobs:
           name: Build @system
           command: |
             emerge -uq libudev # for elogind
-            FEATURES="-getbinpkg" USE=-harfbuzz emerge -1q freetype
             # dev-lang/spidermonkey fails to compile with MAKEOPTS="-j4"
-            USE="harfbuzz" MAKEOPTS="-j2" emerge -NDuq @system
+            MAKEOPTS="-j2" emerge -NDuq @system
           no_output_timeout: 90m
       - run: *upload_packages
 
