@@ -218,6 +218,11 @@ jobs:
             FEATURES="-getbinpkg" emerge -q1 XML-Parser
             perl-cleaner --reallyall
       - run:
+          name: harfbuzz/freetype mess
+          command: |
+            USE=-truetype emerge --oneshot harfbuzz
+            USE=-harfbuzz emerge --oneshot freetype
+      - run:
           name: Build @system
           command: |
             emerge -uq libudev # for elogind
