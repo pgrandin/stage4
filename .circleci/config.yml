@@ -302,7 +302,7 @@ jobs:
           name: Build stage4
           command: |
             cd ~/project
-            bash build_stage4.sh ${target}
+            bash build_stage4.sh << parameters.target >>
       - store_artifacts:
           path: stage4.tgz
           destination: stage4.tgz
