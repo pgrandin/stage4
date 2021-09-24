@@ -221,7 +221,7 @@ jobs:
           name: harfbuzz/freetype mess
           command: |
             USE=-harfbuzz emerge -1q freetype
-            USE=-truetype emerge -1q harfbuzz
+            USE=truetype emerge -1q harfbuzz
       - run:
           name: Build @system
           command: |
