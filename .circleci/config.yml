@@ -225,6 +225,7 @@ jobs:
             # dev-lang/spidermonkey fails to compile with MAKEOPTS="-j4"
             MAKEOPTS="-j2" USE=harfbuzz emerge -1q freetype
             USE=truetype emerge -1q harfbuzz
+          no_output_timeout: 2h
       - run:
           name: Build @system
           command: |
