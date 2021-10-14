@@ -223,13 +223,13 @@ jobs:
             USE=-harfbuzz emerge -1q freetype
             USE="-truetype -cairo -glib -introspection" emerge -1q harfbuzz
             USE=harfbuzz emerge -1q freetype
-            USE=truetype emerge -1q harfbuzz
+            # dev-lang/spidermonkey fails to compile with MAKEOPTS="-j4"
+            MAKEOPTS="-j2" USE=truetype emerge -1q harfbuzz
       - run:
           name: Build @system
           command: |
             emerge -uq libudev # for elogind
-            # dev-lang/spidermonkey fails to compile with MAKEOPTS="-j4"
-            MAKEOPTS="-j2" emerge -NDuq @system
+            emerge -NDuq @system
           no_output_timeout: 90m
       - run: *upload_packages
 
