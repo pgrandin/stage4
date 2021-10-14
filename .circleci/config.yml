@@ -222,9 +222,9 @@ jobs:
           command: |
             USE=-harfbuzz emerge -1q freetype
             USE="-truetype -cairo -glib -introspection" emerge -1q harfbuzz
-            USE=harfbuzz emerge -1q freetype
             # dev-lang/spidermonkey fails to compile with MAKEOPTS="-j4"
-            MAKEOPTS="-j2" USE=truetype emerge -1q harfbuzz
+            MAKEOPTS="-j2" USE=harfbuzz emerge -1q freetype
+            USE=truetype emerge -1q harfbuzz
       - run:
           name: Build @system
           command: |
