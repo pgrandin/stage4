@@ -352,7 +352,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: pre-
             parameters:
-              package: ["sys-devel/clang*-10.", "sys-devel/clang*-11.", "dev-util/cmake", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/gcc", "sys-devel/binutils"]
+              package: ["sys-devel/clang*-11.", "dev-util/cmake", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/gcc", "sys-devel/binutils"]
               target: ["Z390", "R710", "terril"]
             exclude:
               - R710: dev-lang/rust
@@ -363,7 +363,6 @@ workflow_jobs: &workflow_jobs
             - pre-dev-lang/rust-<< matrix.target >>
             - pre-net-libs/nodejs-<< matrix.target >>
             - pre-dev-libs/boost-<< matrix.target >>
-            - pre-sys-devel/clang*-10.-<< matrix.target >>
             - pre-sys-devel/clang*-11.-<< matrix.target >>
             - pre-sys-devel/gcc-<< matrix.target >>
             - pre-sys-devel/binutils-<< matrix.target >>
