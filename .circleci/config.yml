@@ -337,14 +337,14 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: index
             parameters:
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
       - build_kernel:
           requires:
             - update_remote_index-<< matrix.target >>
           matrix:
             alias: kernel
             parameters:
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
       - build_package_oneshot:
           name: pre-<< matrix.package >>-<< matrix.target >>
           requires:
@@ -353,7 +353,7 @@ workflow_jobs: &workflow_jobs
             alias: pre-
             parameters:
               package: ["sys-devel/clang*-10.", "sys-devel/clang*-11.", "dev-util/cmake", "dev-lang/rust", "net-libs/nodejs", "dev-libs/boost", "sys-devel/gcc", "sys-devel/binutils"]
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
             exclude:
               - R710: dev-lang/rust
               - R710: net-libs/nodejs
@@ -371,7 +371,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: sync-
             parameters:
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
       - build_system:
           requires:
             - build_kernel-<< matrix.target >>
@@ -379,7 +379,7 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: build_system
             parameters:
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
       - build_package:
           name: build-<< matrix.package >>-<< matrix.target >>
           requires:
@@ -388,7 +388,7 @@ workflow_jobs: &workflow_jobs
             alias: deps-
             parameters:
               package: ["www-client/firefox", "app-emulation/virt-manager", "dev-util/pycharm-community", "www-client/chromium", "mail-client/thunderbird", "app-emulation/docker-compose", "net-misc/owncloud-client"]
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
       - build_world:
           requires:
             - build-www-client/firefox-<< matrix.target >>
@@ -401,14 +401,14 @@ workflow_jobs: &workflow_jobs
           matrix:
             alias: world-
             parameters:
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
       - build_stage_4:
           requires:
             - build_world-<< matrix.target >>
           matrix:
             alias: stage4-
             parameters:
-              target: ["Z390", "R710"]
+              target: ["Z390", "R710", "terril"]
 
 workflows:
   version: 2
