@@ -1,0 +1,15 @@
+app-admin/syslog-ng
+app-editors/vim
+app-emulation/docker
+app-emulation/docker-compose
+app-misc/tmux
+app-portage/eix
+net-misc/dhcpcd
+sys-apps/mlocate
+sys-apps/pciutils
+sys-apps/usbutils
+sys-block/gparted
+sys-boot/efibootmgr
+sys-boot/grub
+sys-kernel/gentoo-sources
+sys-kernel/linux-firmware
