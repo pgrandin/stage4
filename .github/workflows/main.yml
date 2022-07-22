@@ -63,16 +63,10 @@ jobs:
         run: |
           set -x
           # Download the kernel artifact
-          curl -s -o kernel.tar.gz https://github.com/pgrandin/stage4/suites/7482200653/artifacts/306923299
-
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: CI
-          workflow_conclusion: success
-          branch: gh-actions
-          name: ${{ matrix.target }}-${{ env.kversion }}-kernel.tgz
-          path: /
+          curl -s -o /tmp/kernel-${{ env.kversion }}.tgz \
+            https://${{ secrets.AWS_BUCKET }}.s3-us-west-2.amazonaws.com/stage4/${{ matrix.target }}/kernel-${{ env.kversion }}.tgz
+          # Unpack the kernel artifact
+          tar -xzf /tmp/kernel-${{ env.kversion }}.tgz -C /
 
       - name: Build kernel
         run: |
@@ -98,10 +92,17 @@ jobs:
           make modules_install
           cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
           tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/ /usr/src/${kpath}/.config
-          cp /tmp/kernel-${kversion}.tgz /tmp/kernel.tgz
 
       - name: Archive kernel
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target }}-${{ env.kversion }}-kernel.tgz
-          path: /tmp/kernel.tgz
+          path: /tmp/kernel-${kversion}.tgz
+
+      - uses: hkusu/s3-upload-action@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-bucket: ${{ secrets.AWS_BUCKET }}
+          destination-dir: /stage4/${{ matrix.target }}
+          file-path: '/tmp/kernel-${kversion}.tgz'     
