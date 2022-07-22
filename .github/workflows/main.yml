@@ -32,3 +32,20 @@ jobs:
       # Prepare the correct config
       - name: Prepare the correct config
         run: rsync -vrtza files/${{ matrix.target }}/ /
+
+      - name: Prepare kernel config
+        run: |
+          git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
+          pushd /tmp/kernel-configs-master/
+          kconfig_sha=$(git rev-parse HEAD)
+          popd
+
+          kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
+          echo "# Prepared for ${kversion}-${kconfig_sha}" > kernel-config.txt
+
+          cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/${{ matrix.target }}_defconfig >> kernel-config.txt
+
+          confs=$(cat /root/project/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="${{ matrix.target }}") | .kernel_configs |.[]' )
+          for conf in $confs; do
+              cat /tmp/kernel-configs-master/${conf}_defconfig >> kernel-config.txt
+          done  
