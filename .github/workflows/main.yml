@@ -66,7 +66,9 @@ jobs:
           curl -s -o /tmp/kernel-${{ env.kversion }}.tgz \
             https://${{ secrets.AWS_BUCKET }}.s3-us-west-2.amazonaws.com/stage4/${{ matrix.target }}/kernel-${{ env.kversion }}.tgz
           # Unpack the kernel artifact
-          [ -e /tmp/kernel-${{ env.kversion }}.tgz ] && tar -xzf /tmp/kernel-${{ env.kversion }}.tgz -C /
+          if (file /tmp/kernel-${{ env.kversion }}.tgz | grep -q compressed ) ; then          
+            tar -xzf /tmp/kernel-${{ env.kversion }}.tgz -C / 
+          fi
 
       - name: Build kernel
         run: |
