@@ -115,6 +115,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-bucket: ${{ secrets.AWS_BUCKET }}
+          aws-region: "us-west-2"
           destination-dir: /stage4/${{ matrix.target }}
           file-path: '/tmp/kernel-${{ env.kversion }}.tgz'
 
@@ -137,10 +138,10 @@ jobs:
 
       - name: harfbuzz/freetype mess
         run: |
-          USE=-harfbuzz emerge -1q freetype
-          USE="-truetype -cairo -glib -introspection" emerge -1q harfbuzz
-          # dev-lang/spidermonkey fails to compile with MAKEOPTS="-j4"
-          MAKEOPTS="-j2" USE=harfbuzz emerge -1q freetype
-          USE=truetype emerge -1q harfbuzz        
+          USE=-* emerge --verbose --oneshot --nodeps media-libs/harfbuzz
+          USE=-* emerge --verbose --oneshot --nodeps media-libs/freetype
+          USE=-truetype emerge --verbose --oneshot --nodeps media-libs/harfbuzz
+          USE="-* truetype harfbuzz" emerge --verbose --oneshot media-libs/freetype
+          emerge --verbose --oneshot media-libs/freetype      
       - name: build @system
         run: emerge -NDuq @system      
