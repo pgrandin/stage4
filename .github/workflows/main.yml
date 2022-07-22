@@ -146,7 +146,7 @@ jobs:
       - name: upgrade python
         run: emerge -avq1 python
 
-      -name: upgrade portage
+      - name: upgrade portage
         run: emerge -avq1 portage
 
       - name: harfbuzz/freetype mess
