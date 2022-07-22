@@ -116,7 +116,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-bucket: ${{ secrets.AWS_BUCKET }}
           aws-region: "us-west-2"
-          destination-dir: /stage4/${{ matrix.target }}
+          destination-dir: /stage4/${{ matrix.target }}/
           file-path: '/tmp/kernel-${{ env.kversion }}.tgz'
 
   system:
@@ -138,10 +138,7 @@ jobs:
 
       - name: harfbuzz/freetype mess
         run: |
-          USE=-* emerge --verbose --oneshot --nodeps media-libs/harfbuzz
-          USE=-* emerge --verbose --oneshot --nodeps media-libs/freetype
-          USE=-truetype emerge --verbose --oneshot --nodeps media-libs/harfbuzz
-          USE="-* truetype harfbuzz" emerge --verbose --oneshot media-libs/freetype
-          emerge --verbose --oneshot media-libs/freetype      
+          USE="-harfbuzz" emerge -1 media-libs/freetype media-libs/harfbuzz --nodeps
+          emerge -1 media-libs/freetype media-libs/harfbuzz  
       - name: build @system
         run: emerge -NDuq @system      
