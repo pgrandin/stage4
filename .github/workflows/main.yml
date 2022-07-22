@@ -71,15 +71,14 @@ jobs:
       - name: Build kernel
         run: |
           set -x
-          kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
           kpath=$(ls /usr/src/)
 
           if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
             echo "Found kernel from cache, skipping compilation"
           else
             [ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
-            echo "=sys-kernel/gentoo-sources-$kversion ~amd64" > /etc/portage/package.keywords/gentoo-sources
-            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-$kversion
+            echo "=sys-kernel/gentoo-sources-${{ env.kversion }} ~amd64" > /etc/portage/package.keywords/gentoo-sources
+            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-${{ env.kversion }}
             kpath=$(ls /usr/src/)
 
             cat kernel-config.txt /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig > /usr/src/${kpath}/arch/x86/configs/${{ matrix.target }}_defconfig
@@ -87,19 +86,31 @@ jobs:
 
             make defconfig ${{ matrix.target }}_defconfig
             make -j$(nproc)
+            cd /usr/src/${kpath}
+            make modules_install
+            cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
+            tar cvfz /tmp/kernel-${kversion}.tgz \
+              /boot/kernel-${kversion}-gentoo \
+              /lib/modules/ \
+              /usr/src/${kpath}/.config \
+              /usr/src/${kpath}/arch/x86_64/boot/bzImage
           fi
-          cd /usr/src/${kpath}
-          make modules_install
-          cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
-          tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/ /usr/src/${kpath}/.config
+
+      - name: "Check kernel archive existence for safekeeping"
+        id: check_kernel_archive
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "/tmp/kernel-${kversion}.tgz"
 
       - name: Archive kernel
+        if: steps.check_kernel_archive.outputs.files_exists == 'true'
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target }}-${{ env.kversion }}-kernel.tgz
           path: /tmp/kernel-${kversion}.tgz
 
       - uses: hkusu/s3-upload-action@v2
+        if: steps.check_kernel_archive.outputs.files_exists == 'true'
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
