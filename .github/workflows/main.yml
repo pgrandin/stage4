@@ -15,9 +15,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  kernel:
     runs-on: ubuntu-latest
     container:
       image: pgrandin/stage4-ci:latest
@@ -119,3 +117,22 @@ jobs:
           aws-bucket: ${{ secrets.AWS_BUCKET }}
           destination-dir: /stage4/${{ matrix.target }}
           file-path: '/tmp/kernel-${kversion}.tgz'     
+
+  system:
+    runs-on: ubuntu-latest
+    container:
+      image: pgrandin/stage4-ci:latest
+    strategy:
+      matrix:
+        target: [Z390]        
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      # Prepare the correct config
+      - name: Prepare the correct config
+        run: rsync -vrtza files/${{ matrix.target }}/ /     
+        
+      - name: eix sync
+        run: eix sync
+      - name: build @system
+        run: emerge -NDuq @system      
