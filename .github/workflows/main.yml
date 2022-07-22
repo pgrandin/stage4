@@ -35,6 +35,7 @@ jobs:
 
       - name: Prepare kernel config
         run: |
+          set -x
           git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
           pushd /tmp/kernel-configs-master/
           kconfig_sha=$(git rev-parse HEAD)
