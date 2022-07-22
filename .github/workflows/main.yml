@@ -139,6 +139,9 @@ jobs:
       - name: eix-sync
         run: emerge-webrsync && eix-update
 
+      - name: check python version
+        run: python --version
+
       - name: harfbuzz/freetype mess
         run: |
           USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype media-libs/harfbuzz --nodeps
