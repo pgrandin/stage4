@@ -44,6 +44,8 @@ jobs:
           kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
           echo "# Prepared for ${kversion}-${kconfig_sha}" > kernel-config.txt
 
+          echo $kversion >> $GITHUB_ENV
+
           cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/${{ matrix.target }}_defconfig >> kernel-config.txt
 
           confs=$(cat $GITHUB_WORKSPACE/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="${{ matrix.target }}") | .kernel_configs |.[]' )
@@ -51,6 +53,11 @@ jobs:
               cat /tmp/kernel-configs-master/${conf}_defconfig >> kernel-config.txt
           done  
 
+      - name: Archive kernel config
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}-kernel-${{ env.kversion }}.config
+          path: kernel-config.txt
 
       - name: Build kernel
         run: |
@@ -77,3 +84,9 @@ jobs:
           cp arch/x86_64/boot/bzImage /boot/kernel-${kversion}-gentoo
           tar cvfz /tmp/kernel-${kversion}.tgz /boot/kernel-${kversion}-gentoo /lib/modules/ /usr/src/${kpath}/.config
           cp /tmp/kernel-${kversion}.tgz /tmp/kernel.tgz
+
+      - name: Archive kernel
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}-${{ env.kversion }}-kernel.tgz
+          path: /tmp/kernel.tgz
