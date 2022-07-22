@@ -138,7 +138,7 @@ jobs:
 
       - name: harfbuzz/freetype mess
         run: |
-          USE="-harfbuzz" emerge -1 media-libs/freetype media-libs/harfbuzz --nodeps
+          USE="-harfbuzz" emerge -1 media-libs/freetype media-libs/libpng media-libs/harfbuzz --nodeps
           emerge -1 media-libs/freetype media-libs/harfbuzz  
       - name: build @system
         run: emerge -NDuq @system      
