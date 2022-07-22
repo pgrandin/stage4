@@ -57,7 +57,7 @@ jobs:
           name: ${{ matrix.target }}-kernel-${{ env.kversion }}.config
           path: kernel-config.txt
 
-      - name: check if we have a kernel artifact
+      - name: check if we have a kernel artifact and extract it
         run: |
           set -x
           # Download the kernel artifact
@@ -68,33 +68,35 @@ jobs:
             tar -xvzf /tmp/kernel-${{ env.kversion }}.tgz -C / 
           fi
 
+      - name: "Check kernel image from artifacts"
+        id: check_kernel_artifact
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "/usr/src/linux-${{ env.kversion }}-gentoo/arch/x86_64/boot/bzImage"
+
       - name: Build kernel
+        if: steps.check_kernel_artifact.outputs.files_exists == 'false'
         run: |
           set -x
           kpath="linux-${{ env.kversion }}-gentoo"
+          [ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
+          echo "=sys-kernel/gentoo-sources-${{ env.kversion }} ~amd64" > /etc/portage/package.keywords/gentoo-sources
+          MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-${{ env.kversion }}
+          kpath=$(ls /usr/src/)
 
-          if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
-            echo "Found kernel from cache, skipping compilation"
-          else
-            [ -d /etc/portage/package.keywords/ ] || mkdir /etc/portage/package.keywords/
-            echo "=sys-kernel/gentoo-sources-${{ env.kversion }} ~amd64" > /etc/portage/package.keywords/gentoo-sources
-            MAKEOPTS="-j$(nproc)" FEATURES="-getbinpkg" emerge -q =gentoo-sources-${{ env.kversion }}
-            kpath=$(ls /usr/src/)
+          cat kernel-config.txt /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig > /usr/src/${kpath}/arch/x86/configs/${{ matrix.target }}_defconfig
+          cd /usr/src/${kpath}
 
-            cat kernel-config.txt /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig > /usr/src/${kpath}/arch/x86/configs/${{ matrix.target }}_defconfig
-            cd /usr/src/${kpath}
-
-            make defconfig ${{ matrix.target }}_defconfig
-            make -j$(nproc)
-            cd /usr/src/${kpath}
-            make modules_install
-            cp arch/x86_64/boot/bzImage /boot/kernel-${{ env.kversion }}-gentoo
-            tar cvfz /tmp/kernel-${{ env.kversion }}.tgz \
-              /boot/kernel-${{ env.kversion }}-gentoo \
-              /lib/modules/ \
-              /usr/src/${kpath}/.config \
-              /usr/src/${kpath}/arch/x86_64/boot/bzImage
-          fi
+          make defconfig ${{ matrix.target }}_defconfig
+          make -j$(nproc)
+          cd /usr/src/${kpath}
+          make modules_install
+          cp arch/x86_64/boot/bzImage /boot/kernel-${{ env.kversion }}-gentoo
+          tar cvfz /tmp/kernel-${{ env.kversion }}.tgz \
+            /boot/kernel-${{ env.kversion }}-gentoo \
+            /lib/modules/ \
+            /usr/src/${kpath}/.config \
+            /usr/src/${kpath}/arch/x86_64/boot/bzImage
 
       - name: "Check kernel archive existence for safekeeping"
         id: check_kernel_archive
