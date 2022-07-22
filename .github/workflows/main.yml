@@ -44,7 +44,7 @@ jobs:
           kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?5.10/ {version=$2} END{print version}')
           echo "# Prepared for ${kversion}-${kconfig_sha}" > kernel-config.txt
 
-          echo $kversion >> $GITHUB_ENV
+          echo "kversion=$kversion" >> $GITHUB_ENV
 
           cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/${{ matrix.target }}_defconfig >> kernel-config.txt
 
