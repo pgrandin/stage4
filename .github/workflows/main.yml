@@ -31,4 +31,4 @@ jobs:
 
       # Prepare the correct config
       - name: Prepare the correct config
-        run: rsync -vrtza files/{{ matrix.target }}/ /
+        run: rsync -vrtza files/${{ matrix.target }}/ /
