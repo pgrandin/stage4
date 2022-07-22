@@ -131,8 +131,8 @@ jobs:
       # Prepare the correct config
       - name: Prepare the correct config
         run: rsync -vrtza files/${{ matrix.target }}/ /     
-        
-      - name: eix sync
-        run: eix sync
+
+      - name: eix-sync
+        run: eix-sync
       - name: build @system
         run: emerge -NDuq @system      
