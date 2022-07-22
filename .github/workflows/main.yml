@@ -23,7 +23,7 @@ jobs:
       image: pgrandin/stage4-ci:latest
     strategy:
       matrix:
-        target: ['Z390']
+        target: [Z390]
         
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
