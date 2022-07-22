@@ -6,7 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
-    branches: [ "master" ]
+    branches: [ "master","gh-actions" ]
   pull_request:
     branches: [ "master" ]
 
@@ -58,6 +58,21 @@ jobs:
         with:
           name: ${{ matrix.target }}-kernel-${{ env.kversion }}.config
           path: kernel-config.txt
+
+      - name: check if we have a kernel artifact
+        run: |
+          set -x
+          # Download the kernel artifact
+          curl -s -o kernel.tar.gz https://github.com/pgrandin/stage4/suites/7482200653/artifacts/306923299
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: CI
+          workflow_conclusion: success
+          branch: gh-actions
+          name: ${{ matrix.target }}-${{ env.kversion }}-kernel.tgz
+          path: /
 
       - name: Build kernel
         run: |
