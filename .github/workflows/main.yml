@@ -65,13 +65,13 @@ jobs:
             https://${{ secrets.AWS_BUCKET }}.s3-us-west-2.amazonaws.com/stage4/${{ matrix.target }}/kernel-${{ env.kversion }}.tgz
           # Unpack the kernel artifact
           if (file /tmp/kernel-${{ env.kversion }}.tgz | grep -q compressed ) ; then          
-            tar -xzf /tmp/kernel-${{ env.kversion }}.tgz -C / 
+            tar -xvzf /tmp/kernel-${{ env.kversion }}.tgz -C / 
           fi
 
       - name: Build kernel
         run: |
           set -x
-          kpath=$(ls /usr/src/)
+          kpath="linux-${{ env.kversion }}-gentoo"
 
           if [[ -e "/usr/src/${kpath}/arch/x86_64/boot/bzImage" ]]; then
             echo "Found kernel from cache, skipping compilation"
@@ -116,7 +116,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-bucket: ${{ secrets.AWS_BUCKET }}
           aws-region: "us-west-2"
-          destination-dir: /stage4/${{ matrix.target }}/
+          destination-dir: /${{ matrix.target }}/
+          bucket-root: "/"
           file-path: '/tmp/kernel-${{ env.kversion }}.tgz'
 
   system:
@@ -134,7 +135,7 @@ jobs:
         run: rsync -vrtza files/${{ matrix.target }}/ /     
 
       - name: eix-sync
-        run: eix-sync
+        run: emerge-webrsync && eix-update
 
       - name: harfbuzz/freetype mess
         run: |
