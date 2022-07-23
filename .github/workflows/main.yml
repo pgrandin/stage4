@@ -144,14 +144,30 @@ jobs:
         run: python --version
 
       - name: upgrade python
-        run: emerge -avq1 python
+        run: emerge -q1 python:3.9
 
       - name: upgrade portage
-        run: emerge -avq1 portage
+        run: emerge -q1 portage
 
-      - name: harfbuzz/freetype mess
-        run: |
-          USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype media-libs/harfbuzz --nodeps
-          emerge -1 media-libs/freetype media-libs/harfbuzz  
+      - name: install build essential tools
+        run: emerge -q1 cmake dev-libs/libelf dev-libs/glib glib-utils --nodeps
+
+      - name: first pass for freetype
+        run: USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype --nodeps
+
+      - name: harfbuzz dependencies
+        run: USE="-png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz
+
+      - uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.AWS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: ${{ secrets.AWS_BUCKET }}
+          source_dir: '/var/cache/binpkgs/'
+          destination_dir: "/stage4/${{ matrix.target }}"
+
+      - name: first pass for harfbuzz
+        run: USE=" -png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz
+
       - name: build @system
         run: emerge -NDuq @system      
