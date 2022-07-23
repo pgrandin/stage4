@@ -146,7 +146,7 @@ jobs:
       - name: libffi issues workaround
         run: |
           emerge -q1 dev-libs/libffi
-          emerge --unmerge python:3.8 dev-python/setuptools
+          emerge --unmerge dev-python/setuptools
 
       - name: install awscli
         run: emerge -q app-admin/awscli
