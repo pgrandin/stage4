@@ -144,7 +144,10 @@ jobs:
         run: python --version
 
       - name: install awscli
-        run: emerge -q app-admin/awscli
+        run: |
+          emerge -q1 dev-libs/libffi
+          emerge --unmerge python:3.8 dev-python/setuptools
+          emerge -q app-admin/awscli
 
       - name: fetch remote packages
         run: aws s3 sync --delete s3://${{ secrets.AWS_BUCKET }}/stage4/Z390/binpkgs/ /var/cache/binpkgs/
