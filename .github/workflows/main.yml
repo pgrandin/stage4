@@ -120,7 +120,7 @@ jobs:
           aws-bucket: ${{ secrets.AWS_BUCKET }}
           aws-region: "us-west-2"
           destination-dir: /${{ matrix.target }}/
-          bucket-root: "/"
+          bucket-root: "/stage4/"
           file-path: '/tmp/kernel-${{ env.kversion }}.tgz'
 
   system:
