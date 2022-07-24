@@ -182,3 +182,26 @@ jobs:
 
       - name: build @system
         run: emerge -NDuq @system      
+
+  env-info:
+    runs-on: ubuntu-latest
+    container:
+      image: pgrandin/stage4-ci:latest
+    strategy:
+      matrix:
+        target: [Z390]        
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      # Prepare the correct config
+      - name: Prepare the correct config
+        run: rsync -vrtza files/${{ matrix.target }}/ /     
+
+      - name: eix-sync
+        run: emerge-webrsync && eix-update
+
+      - name: cpuinfo
+        run: cat /proc/cpuinfo
+
+      - name: cpuid2cpuflags
+        run: emerge -q app-portage/cpuid2cpuflags && cpuid2cpuflags
