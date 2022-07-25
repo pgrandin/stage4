@@ -161,7 +161,7 @@ jobs:
         run: emerge -q1 portage
 
       - name: install build essential tools
-        run: emerge -q1 cmake dev-libs/libelf dev-libs/glib glib-utils --nodeps
+        run: emerge -q1 cmake dev-libs/libelf dev-libs/glib glib-utils
 
       - name: first pass for freetype
         run: USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype --nodeps
