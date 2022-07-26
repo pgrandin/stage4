@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         target: [Z390]
-        
+
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
@@ -49,7 +49,7 @@ jobs:
           confs=$(cat $GITHUB_WORKSPACE/config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="${{ matrix.target }}") | .kernel_configs |.[]' )
           for conf in $confs; do
               cat /tmp/kernel-configs-master/${conf}_defconfig >> kernel-config.txt
-          done  
+          done
 
       - name: Archive kernel config
         uses: actions/upload-artifact@v3
@@ -64,8 +64,8 @@ jobs:
           curl -s -o /tmp/kernel-${{ env.kversion }}.tgz \
             https://${{ secrets.AWS_BUCKET }}.s3-us-west-2.amazonaws.com/stage4/${{ matrix.target }}/kernel-${{ env.kversion }}.tgz
           # Unpack the kernel artifact
-          if (file /tmp/kernel-${{ env.kversion }}.tgz | grep -q compressed ) ; then          
-            tar -xvzf /tmp/kernel-${{ env.kversion }}.tgz -C / 
+          if (file /tmp/kernel-${{ env.kversion }}.tgz | grep -q compressed ) ; then
+            tar -xvzf /tmp/kernel-${{ env.kversion }}.tgz -C /
           fi
 
       - name: "Check kernel image from artifacts"
@@ -129,27 +129,16 @@ jobs:
       image: pgrandin/stage4-ci:latest
     strategy:
       matrix:
-        target: [Z390]        
+        target: [Z390]
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       # Prepare the correct config
       - name: Prepare the correct config
-        run: rsync -vrtza files/${{ matrix.target }}/ /     
+        run: rsync -vrtza files/${{ matrix.target }}/ /
 
       - name: eix-sync
         run: emerge-webrsync && eix-update
-
-      - name: check python version
-        run: python --version
-
-      - name: libffi issues workaround
-        run: |
-          emerge -q1 dev-libs/libffi
-          emerge --unmerge dev-python/setuptools
-
-      - name: install awscli
-        run: emerge -q app-admin/awscli
 
       - name: fetch remote packages
         env:
@@ -159,9 +148,6 @@ jobs:
 
       - name: upgrade portage
         run: emerge -q1 portage
-
-      - name: install build essential tools
-        run: USE="-dbus" emerge -q1 cmake dev-libs/libelf dev-libs/glib glib-utils
 
       - name: first pass for freetype
         run: USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype --nodeps
@@ -181,7 +167,7 @@ jobs:
         run: USE=" -png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz
 
       - name: build @system
-        run: emerge -NDuq @system      
+        run: emerge -NDuq @system
 
   env-info:
     runs-on: ubuntu-latest
@@ -189,13 +175,13 @@ jobs:
       image: pgrandin/stage4-ci:latest
     strategy:
       matrix:
-        target: [Z390]        
+        target: [Z390]
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
       # Prepare the correct config
       - name: Prepare the correct config
-        run: rsync -vrtza files/${{ matrix.target }}/ /     
+        run: rsync -vrtza files/${{ matrix.target }}/ /
 
       - name: eix-sync
         run: emerge-webrsync && eix-update
@@ -205,3 +191,23 @@ jobs:
 
       - name: cpuid2cpuflags
         run: emerge -q app-portage/cpuid2cpuflags && cpuid2cpuflags
+
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          file: Dockerfile-stage4
+          tags: pgrandin/stage4-ci:latest
