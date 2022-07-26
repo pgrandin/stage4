@@ -152,13 +152,11 @@ jobs:
       - name: harfbuzz dependencies
         run: USE="-png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz --nodeps
 
-      - uses: shallwefootball/s3-upload-action@master
-        with:
-          aws_key_id: ${{ secrets.AWS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws_bucket: ${{ secrets.AWS_BUCKET }}
-          source_dir: '/var/cache/binpkgs/'
-          destination_dir: "/stage4/${{ matrix.target }}"
+      - name: fetch remote packages
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: aws s3 sync /var/cache/binpkgs/ s3://${{ secrets.AWS_BUCKET }}/stage4/Z390/binpkgs/ /var/cache/binpkgs/
 
       - name: build @system
         run: emerge -NDuq @system
