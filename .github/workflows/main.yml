@@ -202,8 +202,10 @@ jobs:
       - name: Generate today's tag
         run: echo "stage4_tag=$(date +%Y%m%d)" >> $GITHUB_ENV
       - name: check if image already exists
+        id: check_image_exists
         run: docker manifest inspect pgrandin/stage4-ci:${{ env.stage4_tag }}
       - name: Build and push
+        if: steps.check_image_exists.outcome == 'failure'
         uses: docker/build-push-action@v3
         with:
           push: true
