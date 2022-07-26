@@ -199,9 +199,15 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Generate today's tag
+        run: echo "stage4_tag=$(date +%Y%m%d)" >> $GITHUB_ENV
+      - name: check if image already exists
+        run: docker manifest inspect pgrandin/stage4-ci:${{ env.stage4_tag }}
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           push: true
           file: Dockerfile-stage4
-          tags: pgrandin/stage4-ci:latest
+          tags: |
+            pgrandin/stage4-ci:${{ env.stage4_tag }
+            pgrandin/stage4-ci:latest
