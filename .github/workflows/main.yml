@@ -140,6 +140,12 @@ jobs:
       - name: eix-sync
         run: emerge-webrsync && eix-update
 
+      - name: Clean up perl installation
+        run: |
+          emerge -q1 dev-lang/perl
+          FEATURES="-getbinpkg" emerge -q1 XML-Parser
+          perl-cleaner --reallyall
+
       - name: fetch remote packages
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
