@@ -24,5 +24,6 @@ COPY chroot.sh /chroot.sh
 
 RUN emerge -q cmake
 RUN emerge -q awscli
+RUN emerge -qU portage
 
 RUN echo "$target"

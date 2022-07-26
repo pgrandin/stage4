@@ -153,7 +153,7 @@ jobs:
         run: USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype --nodeps
 
       - name: harfbuzz dependencies
-        run: USE="-png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz
+        run: USE="-png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz --nodeps
 
       - uses: shallwefootball/s3-upload-action@master
         with:
@@ -162,9 +162,6 @@ jobs:
           aws_bucket: ${{ secrets.AWS_BUCKET }}
           source_dir: '/var/cache/binpkgs/'
           destination_dir: "/stage4/${{ matrix.target }}"
-
-      - name: first pass for harfbuzz
-        run: USE=" -png -apng -graphite -icu -cairo" FEATURES="-sandbox -usersandbox" emerge -q1 media-libs/harfbuzz
 
       - name: build @system
         run: emerge -NDuq @system
