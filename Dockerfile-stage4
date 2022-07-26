@@ -7,8 +7,8 @@ ARG target="Z390"
 
 RUN mkdir ${stage4_fs}
 
-RUN BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64/" && \
-    STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-2[^<]\{15\}.tar.xz'|uniq` && \
+RUN BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/" && \
+    STAGE3=`wget -q -O - ${BASEURL}|grep -o 'stage3-amd64-openrc-2[^<]\{15\}.tar.xz'|uniq` && \
     wget -nvc ${BASEURL}/$STAGE3 && \
     unxz -k $STAGE3 && tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
@@ -21,5 +21,8 @@ COPY config.json ${stage4_fs}/
 RUN echo "nameserver 8.8.8.8" > ${stage4_fs}/etc/resolv.conf
 
 COPY chroot.sh /chroot.sh
+
+RUN emerge -q cmake
+RUN emerge -q awscli
 
 RUN echo "$target"
