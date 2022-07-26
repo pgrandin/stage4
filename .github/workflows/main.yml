@@ -146,9 +146,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: aws s3 sync --delete s3://${{ secrets.AWS_BUCKET }}/stage4/Z390/binpkgs/ /var/cache/binpkgs/
 
-      - name: upgrade portage
-        run: emerge -q1 portage
-
       - name: first pass for freetype
         run: USE="-harfbuzz -png -apng" emerge -1 media-libs/freetype --nodeps
 
