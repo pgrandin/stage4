@@ -209,5 +209,5 @@ jobs:
           push: true
           file: Dockerfile-stage4
           tags: |
-            pgrandin/stage4-ci:${{ env.stage4_tag }
+            pgrandin/stage4-ci:${{ env.stage4_tag }}
             pgrandin/stage4-ci:latest
