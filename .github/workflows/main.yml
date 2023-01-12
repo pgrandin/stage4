@@ -32,7 +32,7 @@ jobs:
         build-args: |
           today=${{ env.stage4_tag }}
         tags: |
-          pgrandin/stage4-ci:stage3-${{ env.stage4_tag }}
+          docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }}
         cache-from: type=registry,ref=user/app:buildcache
         cache-to: type=registry,ref=user/app:buildcache,mode=max          
 
@@ -45,7 +45,7 @@ jobs:
         build-args: |
           today=${{ env.stage4_tag }}
         tags: |
-          pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }}
+          docker.io/pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }}
         cache-from: type=registry,ref=user/app:buildcache
         cache-to: type=registry,ref=user/app:buildcache,mode=max          
 
