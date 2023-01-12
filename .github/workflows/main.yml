@@ -28,7 +28,17 @@ jobs:
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}        
+        password: ${{ secrets.GITHUB_TOKEN }}   
+
+    - name: Check if we need to rebuild stage3
+      id: check-need-build-stage3
+      run: |
+        RETURN_CODE=`docker manifest inspect docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }} > /dev/null && echo $? || echo $?`
+        echo "::set-output name=need-build::$RETURN_CODE"
+
+    - name: Build docker image
+      if: steps.check-need-build-stage3.outputs.need-build == '1'
+      uses: docker/build-push-action@v2             
     - name: Build and push stage3 step
       uses: docker/build-push-action@v3
       with:
