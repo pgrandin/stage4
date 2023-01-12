@@ -5,6 +5,8 @@ on:
     branches: [ docker ]
   pull_request:
     branches: [ docker ]
+  schedule:
+  - cron: "0 0 * * *"    
 
 jobs:
 
@@ -53,8 +55,8 @@ jobs:
           today=${{ env.stage4_tag }}
         tags: |
           docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }}
-        cache-from: type=registry,ref=user/app:buildcache
-        cache-to: type=registry,ref=user/app:buildcache,mode=max          
+        cache-from: type=registry,ref=pgrandin/stage4-ci:stage3-${{ env.stage4_tag }}
+        cache-to: type=registry,ref=pgrandin/stage4-ci:stage3-${{ env.stage4_tag }},mode=max          
 
     - name: Build and push kernel-build step
       if: steps.check-need-build-kernel-build.outputs.need-build == '1'
@@ -67,6 +69,6 @@ jobs:
           today=${{ env.stage4_tag }}
         tags: |
           docker.io/pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }}
-        cache-from: type=registry,ref=user/app:buildcache
-        cache-to: type=registry,ref=user/app:buildcache,mode=max          
+        cache-from: type=registry,ref=pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }}
+        cache-to: type=registry,ref=pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }},mode=max          
 
