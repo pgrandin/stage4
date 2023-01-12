@@ -59,10 +59,17 @@ RUN cd /usr/src/${kpath} && make -j$(nproc)
 
 
 FROM kernel-config as harfbuzz
+RUN echo "PYTHON_TARGETS=\"python3_9 python3_10\"" >> /etc/portage/make.conf
+RUN sed -i '/^PORTAGE_BINHOST/d' /etc/portage/make.conf
 RUN USE=-harfbuzz emerge -1q freetype
 RUN USE="-truetype -cairo -glib -introspection" emerge -1q harfbuzz
-RUN USE=harfbuzz emerge -1q freetype
-RUN USE=truetype emerge -1q harfbuzz
+# Upgrade glibc 
+RUN emerge --unmerge virtual/libcrypt && emerge -1q glibc
+# Switch binutils profile
+RUN new=$(binutils-config --list-profiles |awk '/\[2\]/ {print $2}') && binutils-config --set $new
+
+# RUN USE=harfbuzz emerge -1q freetype
+# RUN USE=truetype emerge -1q harfbuzz
 
 
 FROM harfbuzz as system
