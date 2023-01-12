@@ -73,7 +73,7 @@ jobs:
       with:
         push: true
         file: Dockerfile
-        target: kernel-build
+        target: harfbuzz
         build-args: |
           today=${{ env.stage4_tag }}
         tags: |
