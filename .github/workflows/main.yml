@@ -16,7 +16,20 @@ jobs:
     - name: Generate today's tag
       run: echo "stage4_tag=$(date +%Y%m%d)" >> $GITHUB_ENV   
     - uses: actions/checkout@v3
-    - name: Build and push
+    - name: Build and push stage3 step
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        file: Dockerfile
+        target: stage3
+        build-args: |
+          today=${{ env.stage4_tag }}
+        tags: |
+          pgrandin/stage4-ci:stage3-${{ env.stage4_tag }}
+        cache-from: type=registry,ref=user/app:buildcache
+        cache-to: type=registry,ref=user/app:buildcache,mode=max          
+
+    - name: Build and push kernel-build step
       uses: docker/build-push-action@v3
       with:
         push: true
@@ -25,5 +38,7 @@ jobs:
         build-args: |
           today=${{ env.stage4_tag }}
         tags: |
-          pgrandin/stage4-ci:${{ env.stage4_tag }}
-          pgrandin/stage4-ci:latest
+          pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }}
+        cache-from: type=registry,ref=user/app:buildcache
+        cache-to: type=registry,ref=user/app:buildcache,mode=max          
+
