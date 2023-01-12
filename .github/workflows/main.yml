@@ -36,6 +36,12 @@ jobs:
         RETURN_CODE=`docker manifest inspect docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }} > /dev/null && echo $? || echo $?`
         echo "::set-output name=need-build::$RETURN_CODE"
 
+    - name: Check if we need to rebuild kernel-build
+      id: check-need-build-kernel-build
+      run: |
+        RETURN_CODE=`docker manifest inspect docker.io/pgrandin/stage4-ci:kernel-build-${{ env.stage4_tag }} > /dev/null && echo $? || echo $?`
+        echo "::set-output name=need-build::$RETURN_CODE"
+
     - name: Build and push stage3 step
       if: steps.check-need-build-stage3.outputs.need-build == '1'
       uses: docker/build-push-action@v3
@@ -51,6 +57,7 @@ jobs:
         cache-to: type=registry,ref=user/app:buildcache,mode=max          
 
     - name: Build and push kernel-build step
+      if: steps.check-need-build-kernel-build.outputs.need-build == '1'
       uses: docker/build-push-action@v3
       with:
         push: true
