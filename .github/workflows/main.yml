@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Generate today's tag
-        run: echo "stage4_tag=$(date +%Y%m%d)" >> $GITHUB_ENV   
+      run: echo "stage4_tag=$(date +%Y%m%d)" >> $GITHUB_ENV   
     - uses: actions/checkout@v3
     - name: Build and push
       uses: docker/build-push-action@v3
