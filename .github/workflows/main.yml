@@ -30,8 +30,6 @@ jobs:
       id: check-need-build-stage3
       run: |
         RETURN_CODE=`docker manifest inspect docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }} > /dev/null && echo $? || echo $?`
-        docker pull docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }}
-        docker tag docker.io/pgrandin/stage4-ci:stage3-${{ env.stage4_tag }} stage3
         echo "::set-output name=need-build::$RETURN_CODE"
 
     - name: Check if we need to rebuild kernel-build
