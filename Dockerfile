@@ -66,7 +66,7 @@ RUN USE="-truetype -cairo -glib -introspection" emerge -1q harfbuzz
 # Upgrade glibc 
 RUN emerge --unmerge virtual/libcrypt && emerge -1q glibc
 # Switch binutils profile
-RUN new=$(binutils-config --list-profiles |awk '/\[2\]/ {print $2}') && binutils-config --set $new
+RUN new=$(binutils-config --list-profiles |awk '/\[2\]/ {print $2}') && binutils-config ${new}
 
 # RUN USE=harfbuzz emerge -1q freetype
 # RUN USE=truetype emerge -1q harfbuzz
