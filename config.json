@@ -24,6 +24,11 @@
     "host": "Z390",
     "kernel_configs": ["docker", "gvt", "kvm", "libvirt"],
     "network_interface": "eno1"
+  },
+  {
+    "host": "XPS",
+    "kernel_configs": ["docker", "gvt", "kvm", "libvirt", "bluez"],
+    "network_interface": "enp165s0u1u4"
   }
   ]
 }
