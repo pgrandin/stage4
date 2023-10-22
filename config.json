@@ -1,34 +1,34 @@
 {
   "configs": [
-  {
-    "host": "DC3217BY",
-    "kernel_configs": ["docker"],
-    "network_interface": "wlp2s0"
-  },
-  {
-    "host": "DCCP847DYE",
-    "kernel_configs": ["docker"],
-    "network_interface": "eno1"
-  },
-  {
-    "host": "3RHD7Y1",
-    "kernel_configs": ["docker"],
-    "network_interface": "eno1"
-  },
-  {
-    "host": "R710",
-    "kernel_configs": ["docker", "kvm", "libvirt"],
-    "network_interface": "eno1"
-  },
-  {
-    "host": "Z390",
-    "kernel_configs": ["docker", "gvt", "kvm", "libvirt"],
-    "network_interface": "eno1"
-  },
-  {
-    "host": "XPS",
-    "kernel_configs": ["docker", "gvt", "kvm", "libvirt", "bluez"],
-    "network_interface": "enp165s0u1u4"
-  }
+    {
+      "host": "DC3217BY",
+      "kernel_configs": ["docker"],
+      "network_interface": "wlp2s0"
+    },
+    {
+      "host": "DCCP847DYE",
+      "kernel_configs": ["docker"],
+      "network_interface": "eno1"
+    },
+    {
+      "host": "3RHD7Y1",
+      "kernel_configs": ["docker"],
+      "network_interface": "eno1"
+    },
+    {
+      "host": "R710",
+      "kernel_configs": ["docker", "kvm", "libvirt"],
+      "network_interface": "eno1"
+    },
+    {
+      "host": "Z390",
+      "kernel_configs": ["docker", "gvt", "kvm", "libvirt"],
+      "network_interface": "eno1"
+    },
+    {
+      "host": "XPS",
+      "kernel_configs": ["docker", "gvt", "kvm", "libvirt", "bluez"],
+      "network_interface": "enp164s0u1u4"
+    }
   ]
 }
