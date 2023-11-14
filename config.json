@@ -26,7 +26,12 @@
       "network_interface": "eno1"
     },
     {
-      "host": "XPS",
+      "host": "XPS-9700",
+      "kernel_configs": ["docker", "gvt", "kvm", "libvirt", "bluez"],
+      "network_interface": "wlp4s0"
+    }
+    {
+      "host": "XPS-9730",
       "kernel_configs": ["docker", "gvt", "kvm", "libvirt", "bluez"],
       "network_interface": "enp164s0u1u4"
     }
