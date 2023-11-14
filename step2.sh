@@ -22,7 +22,7 @@ MAKEOPTS="-j$(nproc)" emerge -q eix app-misc/jq awscli gentoolkit dev-vcs/git
 chown portage:portage /var/cache/eix
 eix-update
 
-aws s3 sync --delete s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /var/cache/binpkgs/
+aws s3 sync s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /var/cache/binpkgs/
 eclean packages
 # push back changes (useful to remove outdated packages right away)
 aws s3 sync --delete /var/cache/binpkgs/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
