@@ -34,6 +34,7 @@ dev-qt/qtserialport
 dev-qt/qtvirtualkeyboard
 dev-util/nvidia-cuda-toolkit
 dev-vcs/git
+media-fonts/fontawesome
 media-gfx/geeqie
 media-gfx/gimp
 media-gfx/graphviz
