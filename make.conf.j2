@@ -19,7 +19,7 @@ MAKEOPTS="-j{{ makeopts }}"
 USE="bindist -dvd -dvdnav -cdio -ppp"
 {%- if 'X' in features %}
 # For X
-USE="${USE} dbus gtk png script cairo udev elogind usbredir exif cuda spice tiff jpeg2k jpegxl jpeg opengl"
+USE="${USE} X dbus gtk png script cairo udev elogind usbredir exif cuda spice tiff jpeg2k jpegxl jpeg opengl"
 {%- else %}
 # For no X
 USE="${USE} -X -cups -wayland"
