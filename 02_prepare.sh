@@ -15,3 +15,5 @@ cp step2.sh ${stage4_fs}/
 cp config.yml ${stage4_fs}/
 cp /etc/resolv.conf ${stage4_fs}/etc/
 
+mkdir -p ${stage4_fs}/root/.aws/
+cp /root/.aws/credentials ${stage4_fs}/root/.aws/
