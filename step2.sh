@@ -17,7 +17,10 @@ eselect profile set default/linux/amd64/17.1
 [[ -f /etc/portage/binrepos.conf/gentoobinhost.conf ]] && rm /etc/portage/binrepos.conf/gentoobinhost.conf
 [[ -d /var/cache/distfiles ]] || mkdir /var/cache/distfiles
 
-MAKEOPTS="-j$(nproc)" emerge -q eix app-misc/jq awscli gentoolkit dev-vcs/git
+wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
+chmod +x /usr/local/bin/yq
+
+MAKEOPTS="-j$(nproc)" emerge -q eix awscli gentoolkit dev-vcs/git
 [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
 chown portage:portage /var/cache/eix
 eix-update
@@ -34,7 +37,7 @@ export kconfig_sha=$(cd /tmp/kernel-configs-master/ && git rev-parse HEAD)
 export kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?6.1./ {version=$2} END{print version}')
 cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/${target}_defconfig > /${target}_defconfig
 
-confs=$(cat /config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="'${target}'") | .kernel_configs |.[]' )
+confs=$(yq -r '.kernel_fragments[]' /config.yml)
 for conf in $confs; do
     echo "# for ${conf}" >> /${target}_defconfig
     cat /tmp/kernel-configs-master/${conf}_defconfig >> /${target}_defconfig
@@ -73,7 +76,7 @@ echo "America/Denver" > /etc/timezone
 
 echo "root:scrambled" | chpasswd
 
-netif=$(cat /config.json | jq --arg HOST "$target" -r '.configs[] | select (.["host"]==$HOST) | .network_interface')
+netif=$(yq -r '.network_interface' config_XPS-9730.yml)
 
 pushd /etc/init.d
 ln -s net.lo net.${netif}

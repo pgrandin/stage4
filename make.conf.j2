@@ -1,0 +1,62 @@
+COMMON_FLAGS="-march={{ march }} -O2 -pipe"
+CFLAGS="${COMMON_FLAGS}"
+CXXFLAGS="${COMMON_FLAGS}"
+FCFLAGS="${COMMON_FLAGS}"
+FFLAGS="${COMMON_FLAGS}"
+
+CPU_FLAGS_X86="{{ cpu_flags_x86 }}"
+
+PORTDIR="/var/db/repos/gentoo"
+DISTDIR="/var/cache/distfiles"
+PKGDIR="/var/cache/binpkgs"
+
+FEATURES="buildpkg getbinpkg parallel-fetch parallel-install"
+
+PORTAGE_BINHOST="http://pierre-packages.s3-website-us-west-2.amazonaws.com/stage4/{{ hostname }}/binpkgs/"
+
+MAKEOPTS="-j{{ makeopts }}"
+
+USE="bindist -dvd -dvdnav -cdio -ppp"
+{%- if 'X' in features %}
+# For X
+USE="${USE} dbus gtk png script cairo udev elogind usbredir exif cuda spice tiff jpeg2k jpegxl jpeg opengl"
+{%- else %}
+# For no X
+USE="${USE} -X -cups -wayland"
+{%- endif %}
+{%- if 'docker' in features %}
+# For docker
+USE="${USE} containers overlay network"
+{%- endif %}
+{%- if 'audio' in features %}
+# For audio
+USE="${USE} alsa bluetooth pulseaudio"
+{%- endif %}
+{%- if 'wifi' in features %}
+# For wifi
+USE="${USE} wifi"
+{%- endif %}
+{%- if 'steam' in features %}
+# For steam
+USE="${USE} abi_x86_32"
+{%- endif %}
+
+# required by libvirt:
+USE="${USE} pkcs11 tools"
+
+PYTHON_TARGETS="python3_11"
+PYTHON_SINGLE_TARGET="python3_11"
+
+# This sets the language of build output to English.
+# Please keep this setting intact when reporting bugs.
+LC_MESSAGES=C
+
+VIDEO_CARDS="{{ video_cards }}"
+
+SANE_BACKENDS="{{ sane_backends | default('') }}"
+
+QEMU_SOFTMMU_TARGETS="aarch64 x86_64 arm"
+
+{% if l10n is defined %}
+L10N="{{ l10n }}"
+{% endif %}
