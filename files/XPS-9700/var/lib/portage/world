@@ -56,6 +56,7 @@ net-dns/bind-tools
 net-im/slack
 net-misc/dhcpcd
 net-misc/keychain
+net-misc/networkmanager
 net-misc/ntp
 net-misc/remmina
 net-misc/x11-ssh-askpass
@@ -82,6 +83,7 @@ sys-firmware/intel-microcode
 sys-firmware/sof-firmware
 sys-fs/dosfstools
 sys-kernel/gentoo-sources
+sys-kernel/gentoo-sources:6.1.77
 sys-kernel/linux-firmware
 sys-power/acpi
 sys-power/powertop
@@ -94,9 +96,9 @@ x11-apps/xrandr
 x11-apps/xwininfo
 x11-base/xorg-drivers
 x11-base/xorg-server
-# x11-drivers/nvidia-drivers
 x11-misc/barrier
 x11-misc/i3lock
+x11-misc/lightdm
 x11-misc/py3status
 x11-misc/sddm
 x11-misc/slim
