@@ -11,7 +11,8 @@ on:
 
 jobs:
   build:
-    runs-on: gentoo/stage3:latest
+    runs-on: self-hosted
+    # runs-on: gentoo/stage3:latest
     strategy:
       matrix:
         target: ['XPS-9700']
@@ -30,5 +31,5 @@ jobs:
         run: |
           eselect profile set default/linux/amd64/17.1
           emerge-webrsync
-          emerge -q eix
+          FEATURES="-pid-sandbox -ipc-sandbox -network-sandbox" emerge -q eix
           eix-update
