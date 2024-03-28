@@ -86,3 +86,12 @@ jobs:
 
           cp step2.sh ${stage4_fs}/
           yq eval ".[\"$target\"]" ${stage4_fs}/config.yml
+
+
+      - name: umount chroot
+        if: always()
+        run: |
+          umount ${stage4_fs}/proc
+          umount ${stage4_fs}/dev
+          umount ${stage4_fs}/var/tmp
+          umount ${stage4_fs}/var/cache
