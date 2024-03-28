@@ -1,5 +1,4 @@
 name: Build
-
 on:
   push:
     branches:
@@ -17,7 +16,7 @@ jobs:
       fail-fast: false
     env:
       target: ${{ matrix.target }}
-      stage4_fs: ./stage4
+      stage4_fs: "./stage4"
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -41,58 +40,58 @@ jobs:
 
     - name: Prepare configs
       run: |
-          # Path to the config.yml file
-          CONFIG_FILE="config.yml"
+        # Path to the config.yml file
+        CONFIG_FILE="config.yml"
 
-          # Path to the Jinja2 template
-          TEMPLATE_FILE="make.conf.j2"
+        # Path to the Jinja2 template
+        TEMPLATE_FILE="make.conf.j2"
 
-          # Extract keys (hostnames) from the YAML file
-          # The following command gets the top-level keys in the YAML file
-          KEYS=$(yq e '. | keys | .[]' "${CONFIG_FILE}")
+        # Extract keys (hostnames) from the YAML file
+        # The following command gets the top-level keys in the YAML file
+        KEYS=$(yq e '. | keys | .[]' "${CONFIG_FILE}")
 
-          # Iterate over each key and process it
-          for key in ${KEYS}; do
-              if [[ "${key}" != "null" && ! -z "${key}" ]]; then
-                  # Generate temporary YAML file for the current key
-                  TEMP_YAML_FILE="temp_${key}.yml"
-                  yq e ".${key}" "${CONFIG_FILE}" > "${TEMP_YAML_FILE}"
+        # Iterate over each key and process it
+        for key in ${KEYS}; do
+            if [[ "${key}" != "null" && ! -z "${key}" ]]; then
+                # Generate temporary YAML file for the current key
+                TEMP_YAML_FILE="temp_${key}.yml"
+                yq e ".${key}" "${CONFIG_FILE}" > "${TEMP_YAML_FILE}"
 
-                  # Define the output file path
-                  OUTPUT_FILE="files/${key}/etc/portage/make.conf"
+                # Define the output file path
+                OUTPUT_FILE="files/${key}/etc/portage/make.conf"
 
-                  # Ensure the output directory exists
-                  mkdir -p "$(dirname "${OUTPUT_FILE}")"
+                # Ensure the output directory exists
+                mkdir -p "$(dirname "${OUTPUT_FILE}")"
 
-                  # Run j2 using the temporary YAML file
-                  jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+                # Run j2 using the temporary YAML file
+                jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
 
-                  echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
+                echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
 
-                  # Clean up the temporary file
-                  rm -f "${TEMP_YAML_FILE}"
-              fi
-          done
+                # Clean up the temporary file
+                rm -f "${TEMP_YAML_FILE}"
+            fi
+        done
 
     - name: Prepare chroot
       run: |
-          mount -t proc /proc ${stage4_fs}/proc
-          mount --rbind /dev ${stage4_fs}/dev
-          mount -t tmpfs tmpfs ${stage4_fs}/var/tmp
-          mount -t tmpfs tmpfs ${stage4_fs}/var/cache
+        mount -t proc /proc ${stage4_fs}/proc
+        mount --rbind /dev ${stage4_fs}/dev
+        mount -t tmpfs tmpfs ${stage4_fs}/var/tmp
+        mount -t tmpfs tmpfs ${stage4_fs}/var/cache
 
 
-          rsync -vrtza files/common/ ${stage4_fs}/
-          rsync -vrtza files/${target}/ ${stage4_fs}/
+        rsync -vrtza files/common/ ${stage4_fs}/
+        rsync -vrtza files/${target}/ ${stage4_fs}/
 
-          cp step2.sh ${stage4_fs}/
-          yq eval ".[\"$target\"]" ${stage4_fs}/config.yml
+        cp step2.sh ${stage4_fs}/
+        yq eval ".[\"$target\"]" ${stage4_fs}/config.yml
 
 
-      - name: umount chroot
-        if: always()
-        run: |
-          umount ${stage4_fs}/proc
-          umount ${stage4_fs}/dev
-          umount ${stage4_fs}/var/tmp
-          umount ${stage4_fs}/var/cache
+    - name: umount chroot
+      if: always()
+      run: |
+        umount ${stage4_fs}/proc
+        umount ${stage4_fs}/dev
+        umount ${stage4_fs}/var/tmp
+        umount ${stage4_fs}/var/cache
