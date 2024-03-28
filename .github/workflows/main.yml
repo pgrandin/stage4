@@ -90,12 +90,18 @@ jobs:
         cp step2.sh ${{ env.stage4_fs }}/
         yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
-    - name: s3
+
+    - name: Create AWS Credentials File
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 ls
+        mkdir -p ${{ env.stage4_fs }}/root/.aws
+        cat <<EOF > "${{ env.stage4_fs }}/root/.aws/credentials"
+        [default]
+        aws_access_key_id = $AWS_ACCESS_KEY_ID
+        aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+        EOF      
     
     - name: chroot
       run: |
