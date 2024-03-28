@@ -35,7 +35,7 @@ jobs:
         STAGE3=$(wget -q -O - ${BASEURL} | grep -oP 'href="stage3-amd64-openrc-\d+T\d+Z\.tar\.xz"' | cut -d '"' -f 2 | head -n 1)
 
         wget -nvc ${BASEURL}/$STAGE3 -O /dl/$STAGE3
-        [ -f ${STAGE3} ] && rm -f ${STAGE3%.*}
+        [ -f /dl/${STAGE3} ] && rm -f /dl/${STAGE3%.*}
         mkdir -p ${stage4_fs}
         unxz -k /dl/$STAGE3 && tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
