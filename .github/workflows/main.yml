@@ -23,7 +23,7 @@ jobs:
 
     - name: Prepare Build Environment
       run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv awscli
         wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
         chmod +x /usr/local/bin/yq
 
@@ -90,6 +90,9 @@ jobs:
         cp step2.sh ${{ env.stage4_fs }}/
         yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
+    - name: s3
+      run: |
+        aws s3 ls
 
     - name: umount chroot
       if: always()
