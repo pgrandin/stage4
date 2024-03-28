@@ -24,11 +24,9 @@ jobs:
 
     - name: Prepare Build Environment
       run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-jinja2
         wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
         chmod +x /usr/local/bin/yq
-
-        pip3 install jinja2-cli
 
     - name: Prepare stage3
       run: |
@@ -66,7 +64,7 @@ jobs:
                   mkdir -p "$(dirname "${OUTPUT_FILE}")"
 
                   # Run j2 using the temporary YAML file
-                  j2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+                  jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
 
                   echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
 
