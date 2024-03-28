@@ -12,7 +12,7 @@ jobs:
     runs-on: [self-hosted]
     strategy:
       matrix:
-        target: [XPS-9700]
+        target: [XPS-9700, XPS-9730, R710, Z390]
       fail-fast: false
     env:
       target: ${{ matrix.target }}
@@ -80,6 +80,7 @@ jobs:
       run: |
         mount -t proc /proc ${{ env.stage4_fs }}/proc
         mount --rbind /dev ${{ env.stage4_fs }}/dev
+        mount -t devpts devpts ${{ env.stage4_fs }}/dev/pts
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/tmp
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/cache
 
@@ -109,4 +110,8 @@ jobs:
     - name: umount chroot
       if: always()
       run: |
-        umount ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache
+        umount ${{ env.stage4_fs }}/dev/pts \
+          ${{ env.stage4_fs }}/proc \
+          ${{ env.stage4_fs }}/dev \
+          ${{ env.stage4_fs }}/var/tmp \
+          ${{ env.stage4_fs }}/var/cache
