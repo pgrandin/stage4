@@ -36,8 +36,8 @@ jobs:
 
         wget -nvc ${BASEURL}/$STAGE3 -O /dl/$STAGE3
         [ -f /dl/${STAGE3} ] && rm -f /dl/${STAGE3%.*}
-        mkdir -p ${stage4_fs}
-        unxz -k /dl/$STAGE3 && tar xpf ${STAGE3%.*} -C ${stage4_fs}
+        mkdir -p ${{ env.stage4_fs }}
+        unxz -k /dl/$STAGE3 && tar xpf /dl/${STAGE3%.*} -C ${{ env.stage4_fs }}
 
     - name: Prepare configs
       run: |
@@ -78,23 +78,23 @@ jobs:
 
     - name: Prepare chroot
       run: |
-        mount -t proc /proc ${stage4_fs}/proc
-        mount --rbind /dev ${stage4_fs}/dev
-        mount -t tmpfs tmpfs ${stage4_fs}/var/tmp
-        mount -t tmpfs tmpfs ${stage4_fs}/var/cache
+        mount -t proc /proc ${{ env.stage4_fs }}/proc
+        mount --rbind /dev ${{ env.stage4_fs }}/dev
+        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/tmp
+        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/cache
 
 
-        rsync -vrtza files/common/ ${stage4_fs}/
-        rsync -vrtza files/${target}/ ${stage4_fs}/
+        rsync -vrtza files/common/ ${{ env.stage4_fs }}/
+        rsync -vrtza files/${target}/ ${{ env.stage4_fs }}/
 
-        cp step2.sh ${stage4_fs}/
-        yq eval ".[\"$target\"]" ${stage4_fs}/config.yml
+        cp step2.sh ${{ env.stage4_fs }}/
+        yq eval ".[\"$target\"]" ${{ env.stage4_fs }}/config.yml
 
 
     - name: umount chroot
       if: always()
       run: |
-        umount ${stage4_fs}/proc
-        umount ${stage4_fs}/dev
-        umount ${stage4_fs}/var/tmp
-        umount ${stage4_fs}/var/cache
+        umount ${{ env.stage4_fs }}/proc
+        umount ${{ env.stage4_fs }}/dev
+        umount ${{ env.stage4_fs }}/var/tmp
+        umount ${{ env.stage4_fs }}/var/cache
