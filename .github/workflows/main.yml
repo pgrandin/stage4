@@ -72,3 +72,17 @@ jobs:
                   rm -f "${TEMP_YAML_FILE}"
               fi
           done
+
+    - name: Prepare chroot
+      run: |
+          mount -t proc /proc ${stage4_fs}/proc
+          mount --rbind /dev ${stage4_fs}/dev
+          mount -t tmpfs tmpfs ${stage4_fs}/var/tmp
+          mount -t tmpfs tmpfs ${stage4_fs}/var/cache
+
+
+          rsync -vrtza files/common/ ${stage4_fs}/
+          rsync -vrtza files/${target}/ ${stage4_fs}/
+
+          cp step2.sh ${stage4_fs}/
+          yq eval ".[\"$target\"]" ${stage4_fs}/config.yml
