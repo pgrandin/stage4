@@ -34,6 +34,7 @@ jobs:
 
         wget -nvc ${BASEURL}/$STAGE3
         [ -f ${STAGE3} ] && rm -f ${STAGE3%.*}
+        mkdir -p ${stage4_fs}
         unxz -k $STAGE3 && tar xpf ${STAGE3%.*} -C ${stage4_fs}
 
     - name: Prepare configs
