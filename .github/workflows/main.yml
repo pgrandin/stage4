@@ -99,7 +99,7 @@ jobs:
     
     - name: chroot
       run: |
-        chroot ${{ env.stage4_fs }} /bin/bash /step2.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /step2.sh ${{ env.target }}
 
     - name: umount chroot
       if: always()
