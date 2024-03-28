@@ -17,12 +17,17 @@ jobs:
       fail-fast: false
     env:
       target: ${{ matrix.target }}
-      stage4_fs: "./stage4"
+      stage4_fs: ./stage4
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
     - name: Prepare Build Environment
+      run: |
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends unxz
+        wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
+
+    - name: Prepare stage3
       run: |
         BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/"
         STAGE3=$(wget -q -O - ${BASEURL} | grep -oP 'href="stage3-amd64-openrc-\d+T\d+Z\.tar\.xz"' | cut -d '"' -f 2 | head -n 1)
@@ -30,3 +35,38 @@ jobs:
         wget -nvc ${BASEURL}/$STAGE3
         [ -f ${STAGE3} ] && rm -f ${STAGE3%.*}
         unxz -k $STAGE3 && tar xpf ${STAGE3%.*} -C ${stage4_fs}
+
+    - name: Prepare configs
+      run: |
+          # Path to the config.yml file
+          CONFIG_FILE="config.yml"
+
+          # Path to the Jinja2 template
+          TEMPLATE_FILE="make.conf.j2"
+
+          # Extract keys (hostnames) from the YAML file
+          # The following command gets the top-level keys in the YAML file
+          KEYS=$(yq e '. | keys | .[]' "${CONFIG_FILE}")
+
+          # Iterate over each key and process it
+          for key in ${KEYS}; do
+              if [[ "${key}" != "null" && ! -z "${key}" ]]; then
+                  # Generate temporary YAML file for the current key
+                  TEMP_YAML_FILE="temp_${key}.yml"
+                  yq e ".${key}" "${CONFIG_FILE}" > "${TEMP_YAML_FILE}"
+
+                  # Define the output file path
+                  OUTPUT_FILE="files/${key}/etc/portage/make.conf"
+
+                  # Ensure the output directory exists
+                  mkdir -p "$(dirname "${OUTPUT_FILE}")"
+
+                  # Run j2 using the temporary YAML file
+                  j2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+
+                  echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
+
+                  # Clean up the temporary file
+                  rm -f "${TEMP_YAML_FILE}"
+              fi
+          done
