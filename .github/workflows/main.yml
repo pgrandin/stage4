@@ -129,12 +129,17 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         # push back changes (useful to remove outdated packages right away)
-        aws s3 sync --delete  /var/cache/binpkgs/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
+        aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
 
     - name: build kernel
       run: |
         cp chroot/01_kernel.sh ${{ env.stage4_fs }}/01_kernel.sh
         chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.target }}
+
+    - name: rebuild world
+      run: |
+        cp chroot/02_rebuild_world.sh ${{ env.stage4_fs }}/02_rebuild_world.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /02_rebuild_world.sh ${{ env.target }}
 
     - name: umount chroot
       if: always()
