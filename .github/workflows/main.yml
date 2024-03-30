@@ -44,12 +44,9 @@ jobs:
         # Download the stage3 tarball
         wget --progress=dot:default -e dotbytes=1M -e dots_in_line=50 -e dot_spacing=1 "${BASEURL}${STAGE3}" -O "/dl/${STAGE3##*/}"
 
-
-
         # Verify if the file has been successfully downloaded
         if [ -f "/dl/${STAGE3##*/}" ]; then
-            # Decompress and extract the archive
-            unxz -k "/dl/${STAGE3##*/}" && tar xpf "/dl/${STAGE3%.*}" -C ${{ env.stage4_fs }} || rm "/dl/${STAGE3##*/}"
+          tar -xJpf "/dl/${STAGE3##*/}" -C ${{ env.stage4_fs }} || (echo "Extraction failed. Removing downloaded file." && rm "/dl/${STAGE3##*/}")
         else
             echo "The download of the stage3 file failed."
             exit 1
