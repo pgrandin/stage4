@@ -23,7 +23,7 @@ jobs:
 
     - name: Prepare Build Environment
       run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv awscli
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv awscli curl
         wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
         chmod +x /usr/local/bin/yq
 
@@ -42,7 +42,7 @@ jobs:
         fi
 
         # Download the stage3 tarball
-        wget --progress=dot:default -e dotbytes=1M -e dots_in_line=50 -e dot_spacing=1 "${BASEURL}${STAGE3}" -O "/dl/${STAGE3##*/}"
+        curl --progress-bar -o "/dl/${STAGE3##*/}" "${BASEURL}${STAGE3}"
 
         # Verify if the file has been successfully downloaded
         if [ -f "/dl/${STAGE3##*/}" ]; then
