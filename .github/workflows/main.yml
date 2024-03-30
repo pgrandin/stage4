@@ -46,6 +46,7 @@ jobs:
 
         # Verify if the file has been successfully downloaded
         if [ -f "/dl/${STAGE3##*/}" ]; then
+          mkdir -p ${{ env.stage4_fs }}
           tar -xJpf "/dl/${STAGE3##*/}" -C ${{ env.stage4_fs }} || (echo "Extraction failed. Removing downloaded file." && rm "/dl/${STAGE3##*/}")
         else
             echo "The download of the stage3 file failed."
