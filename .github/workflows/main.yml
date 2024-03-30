@@ -42,7 +42,7 @@ jobs:
         fi
 
         # Download the stage3 tarball
-        curl --progress-bar -o "/dl/${STAGE3##*/}" "${BASEURL}${STAGE3}"
+        wget -c -O "/dl/${STAGE3##*/}" "${BASEURL}${STAGE3}"
 
         # Verify if the file has been successfully downloaded
         if [ -f "/dl/${STAGE3##*/}" ]; then
@@ -112,7 +112,8 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        aws s3 sync --only-show-errors s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/ || true
+        aws s3 sync --only-show-errors s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/
+        mkdir -p ${{ env.stage4_fs }}/var/cache/binpkgs
         mount -o bind /dl/binpkgs/${{ env.target }}/ ${{ env.stage4_fs }}/var/cache/binpkgs
 
     - name: chroot
@@ -138,7 +139,8 @@ jobs:
     - name: umount chroot
       if: always()
       run: |
-        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache; do
+        sync
+        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache/binpkgs ${{ env.stage4_fs }}/var/cache; do
           if mountpoint -q "$mount"; then
             echo "Attempting lazy unmount of $mount"
             umount -l "$mount" || echo "Failed to lazily unmount $mount."
