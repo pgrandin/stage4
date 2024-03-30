@@ -36,6 +36,7 @@ jobs:
         LATEST_INFO_URL="${BASEURL}latest-stage3-amd64-openrc.txt"
         STAGE3=$(wget -q -O - ${LATEST_INFO_URL} | grep -oP '\d+T\d+Z/stage3-amd64-openrc-\d+T\d+Z\.tar\.xz' | head -n 1)
 
+        STAGE3=20231126T163200Z/stage3-amd64-openrc-20231126T163200Z.tar.xz
         if [ -z "${STAGE3}" ]; then
             echo "Failed to find the latest stage3 filename."
             exit 1
