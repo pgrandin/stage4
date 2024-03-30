@@ -30,13 +30,28 @@ jobs:
     - name: Prepare stage3
       run: |
         set -x
-        BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/current-stage3-amd64-openrc/"
-        STAGE3=$(wget -q -O - ${BASEURL} | grep -oP 'href="stage3-amd64-openrc-\d+T\d+Z\.tar\.xz"' | cut -d '"' -f 2 | head -n 1)
 
-        wget -vc ${BASEURL}/$STAGE3 -O /dl/$STAGE3
-        [ -f /dl/${STAGE3} ] && rm -f /dl/${STAGE3%.*}
-        mkdir -p ${{ env.stage4_fs }}
-        unxz -k /dl/$STAGE3 && tar xpf /dl/${STAGE3%.*} -C ${{ env.stage4_fs }} || rm /dl/$STAGE3
+        BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/"
+        # Fetch the latest stage3 file name from the latest-stage3-amd64-openrc.txt
+        LATEST_INFO_URL="${BASEURL}latest-stage3-amd64-openrc.txt"
+        STAGE3=$(wget -q -O - ${LATEST_INFO_URL} | grep -oP '\d+T\d+Z/stage3-amd64-openrc-\d+T\d+Z\.tar\.xz' | head -n 1)
+
+        if [ -z "${STAGE3}" ]; then
+            echo "Failed to find the latest stage3 filename."
+            exit 1
+        fi
+
+        # Download the stage3 tarball
+        wget -vc "${BASEURL}${STAGE3}" -O "/dl/${STAGE3##*/}"
+
+        # Verify if the file has been successfully downloaded
+        if [ -f "/dl/${STAGE3##*/}" ]; then
+            # Decompress and extract the archive
+            unxz -k "/dl/${STAGE3##*/}" && tar xpf "/dl/${STAGE3%.*}" -C ${{ env.stage4_fs }} || rm "/dl/${STAGE3##*/}"
+        else
+            echo "The download of the stage3 file failed."
+            exit 1
+        fi
 
     - name: Prepare configs
       run: |
