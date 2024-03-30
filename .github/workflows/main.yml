@@ -12,7 +12,7 @@ jobs:
     runs-on: [self-hosted]
     strategy:
       matrix:
-        target: [XPS-9700]
+        target: [XPS-9700, XPS-9730, R710, Z390]
       fail-fast: false
     env:
       target: ${{ matrix.target }}
@@ -140,6 +140,14 @@ jobs:
       run: |
         cp chroot/02_rebuild_world.sh ${{ env.stage4_fs }}/02_rebuild_world.sh
         chroot ${{ env.stage4_fs }} /bin/bash /02_rebuild_world.sh ${{ env.target }}
+
+    - name: push back changes
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
 
     - name: umount chroot
       if: always()
