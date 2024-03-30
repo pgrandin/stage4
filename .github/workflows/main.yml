@@ -84,7 +84,6 @@ jobs:
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/tmp
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/cache
 
-
         rsync -vrtza files/common/ ${{ env.stage4_fs }}/
         rsync -vrtza files/${{ env.target }}/ ${{ env.stage4_fs }}/
 
@@ -103,42 +102,32 @@ jobs:
 
     - name: chroot
       run: |
-        cat <<EOF > ${{ env.stage4_fs }}/00_chroot.sh
-        #!/bin/bash
+        cp chroot/00.sh ${{ env.stage4_fs }}/00.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /00.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /usr/bin/eclean packages
 
-        set -e
+    - name: push back changes
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        # push back changes (useful to remove outdated packages right away)
+        aws s3 sync --delete  /var/cache/binpkgs/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
 
-        target=$1
-        [[ -z "${target}" ]] && exit 1
-
-        echo "nameserver 1.1.1.1" > /etc/resolv.conf
-
-        env-update && source /etc/profile
-        emerge-webrsync
-
-        export AWS_BUCKET="pierre-packages"
-
-        eselect profile set default/linux/amd64/17.1
-
-        [[ -f /etc/portage/binrepos.conf/gentoobinhost.conf ]] && rm /etc/portage/binrepos.conf/gentoobinhost.conf
-        [[ -d /var/cache/distfiles ]] || mkdir /var/cache/distfiles
-
-        wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
-        chmod +x /usr/local/bin/yq
-
-        MAKEOPTS="-j$(nproc)" emerge -q eix awscli gentoolkit dev-vcs/git
-        [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
-        chown portage:portage /var/cache/eix
-        eix-update
-        EOF
-
-        chroot ${{ env.stage4_fs }} /bin/bash /step2.sh ${{ env.target }}
+    - name: build kernel
+      run: |
+        cp chroot/01_kernel.sh ${{ env.stage4_fs }}/01_kernel.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.target }}
 
     - name: umount chroot
       if: always()
       run: |
-        umount ${{ env.stage4_fs }}/dev/pts \
-          ${{ env.stage4_fs }}/proc \
-          ${{ env.stage4_fs }}/dev \
-          ${{ env.stage4_fs }}/var/tmp \
-          ${{ env.stage4_fs }}/var/cache
+        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache; do
+          if mountpoint -q "$mount"; then
+            echo "Attempting lazy unmount of $mount"
+            umount -l "$mount" || echo "Failed to lazily unmount $mount."
+          else
+            echo "$mount is not a mount-point or already unmounted."
+          fi
+        done
