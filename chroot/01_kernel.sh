@@ -10,6 +10,9 @@ target=$1
 git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
 export kconfig_sha=$(cd /tmp/kernel-configs-master/ && git rev-parse HEAD)
 export kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?6.1./ {version=$2} END{print version}')
+
+echo "efibootmgr -c -d /dev/nvme0n1 -l '\EFI\gentoo-${kversion}' -L 'Gentoo-${kversion}'" > /root/setup_efi.sh
+
 cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/${target}_defconfig > /${target}_defconfig
 
 confs=$(yq -r '.kernel_fragments[]' /config.yml)
