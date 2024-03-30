@@ -12,7 +12,7 @@ jobs:
     runs-on: [self-hosted]
     strategy:
       matrix:
-        target: [XPS-9700, XPS-9730, R710, Z390]
+        target: [XPS-9700]
       fail-fast: false
     env:
       target: ${{ matrix.target }}
@@ -92,19 +92,44 @@ jobs:
         yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
 
-    - name: Create AWS Credentials File
+    - name: synchronize remote bucket
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_BUCKET: pierre-packages
       run: |
-        mkdir -p ${{ env.stage4_fs }}/root/.aws
-        cat <<EOF > "${{ env.stage4_fs }}/root/.aws/credentials"
-        [default]
-        aws_access_key_id = $AWS_ACCESS_KEY_ID
-        aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-    
+        aws s3 sync --only-show-errors s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/ || true
+        mount -o bind /dl/binpkgs/${{ env.target }}/ ${{ env.stage4_fs }}/var/cache/binpkgs
+
     - name: chroot
       run: |
+        cat <<EOF > ${{ env.stage4_fs }}/00_chroot.sh
+        #!/bin/bash
+
+        set -e
+
+        target=$1
+        [[ -z "${target}" ]] && exit 1
+
+        echo "nameserver 1.1.1.1" > /etc/resolv.conf
+
+        env-update && source /etc/profile
+        emerge-webrsync
+
+        export AWS_BUCKET="pierre-packages"
+
+        eselect profile set default/linux/amd64/17.1
+
+        [[ -f /etc/portage/binrepos.conf/gentoobinhost.conf ]] && rm /etc/portage/binrepos.conf/gentoobinhost.conf
+        [[ -d /var/cache/distfiles ]] || mkdir /var/cache/distfiles
+
+        wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
+        chmod +x /usr/local/bin/yq
+
+        MAKEOPTS="-j$(nproc)" emerge -q eix awscli gentoolkit dev-vcs/git
+        [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
+        chown portage:portage /var/cache/eix
+        eix-update
+        EOF
+
         chroot ${{ env.stage4_fs }} /bin/bash /step2.sh ${{ env.target }}
 
     - name: umount chroot
