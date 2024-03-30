@@ -42,7 +42,9 @@ jobs:
         fi
 
         # Download the stage3 tarball
-        wget -vc "${BASEURL}${STAGE3}" -O "/dl/${STAGE3##*/}"
+        wget --progress=dot:default -e dotbytes=1M -e dots_in_line=50 -e dot_spacing=1 "${BASEURL}${STAGE3}" -O "/dl/${STAGE3##*/}"
+
+
 
         # Verify if the file has been successfully downloaded
         if [ -f "/dl/${STAGE3##*/}" ]; then
