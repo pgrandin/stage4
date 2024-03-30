@@ -1,3 +1,4 @@
 #!/bin/bash
-
-MAKEOPTS="-j$(nproc)" emerge -eq @world --jobs 64
+export FEATURES="-collision-protect"
+export MAKEOPTS="-j$(nproc)"
+emerge -eq @world --jobs 64
