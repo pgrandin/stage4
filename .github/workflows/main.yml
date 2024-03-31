@@ -97,6 +97,7 @@ jobs:
         mount -t proc /proc ${{ env.stage4_fs }}/proc
         mount --rbind /dev ${{ env.stage4_fs }}/dev
         mount -t devpts devpts ${{ env.stage4_fs }}/dev/pts
+        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/dev/shm
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/tmp
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/cache
 
@@ -154,7 +155,7 @@ jobs:
       if: always()
       run: |
         sync
-        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache/binpkgs ${{ env.stage4_fs }}/var/cache; do
+        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/dev/shm ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache/binpkgs ${{ env.stage4_fs }}/var/cache; do
           if mountpoint -q "$mount"; then
             echo "Attempting lazy unmount of $mount"
             umount -l "$mount" || echo "Failed to lazily unmount $mount."
