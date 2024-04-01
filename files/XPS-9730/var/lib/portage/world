@@ -92,6 +92,7 @@ sys-power/powertop
 sys-power/tlp
 sys-process/numactl
 www-client/firefox
+www-client/chromium
 x11-apps/xbacklight
 x11-apps/xev
 x11-apps/xrandr
