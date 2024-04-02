@@ -140,7 +140,7 @@ jobs:
 
     - name: quirks
       run: |
-        cp chroot/02_quirks.sh ${{ env.stage4_fs }}/012_quirks.sh
+        cp chroot/02_quirks.sh ${{ env.stage4_fs }}/02_quirks.sh
         chroot ${{ env.stage4_fs }} /bin/bash /02_quirks.sh ${{ env.target }}
 
     - name: rebuild world
