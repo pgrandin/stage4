@@ -3,3 +3,5 @@ media-libs/harfbuzz icu
 sys-libs/zlib minizip
 net-libs/nodejs inspector
 app-text/xmlto text
+dev-lang/rust profiler
+

@@ -138,10 +138,15 @@ jobs:
         cp chroot/01_kernel.sh ${{ env.stage4_fs }}/01_kernel.sh
         chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.target }}
 
+    - name: quirks
+      run: |
+        cp chroot/02_quirks.sh ${{ env.stage4_fs }}/012_quirks.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /02_quirks.sh ${{ env.target }}
+
     - name: rebuild world
       run: |
-        cp chroot/02_rebuild_world.sh ${{ env.stage4_fs }}/02_rebuild_world.sh
-        chroot ${{ env.stage4_fs }} /bin/bash /02_rebuild_world.sh ${{ env.target }}
+        cp chroot/03_rebuild_world.sh ${{ env.stage4_fs }}/03_rebuild_world.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /03_rebuild_world.sh ${{ env.target }}
 
     - name: push back changes
       env:
