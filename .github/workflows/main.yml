@@ -134,7 +134,11 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         # push back changes (useful to remove outdated packages right away)
-        aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
+        if aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "AWS sync succeeded"
+        else
+            echo "AWS sync failed"
+        fi
 
     - name: build kernel
       run: |
@@ -161,7 +165,7 @@ jobs:
             echo "AWS sync succeeded"
         else
             echo "AWS sync failed"
-        fi        
+        fi
 
     - name: umount chroot
       if: always()
