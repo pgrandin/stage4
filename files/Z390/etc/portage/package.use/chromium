@@ -1,2 +1,7 @@
+dev-libs/libxml2 icu
+media-libs/harfbuzz icu
+sys-libs/zlib minizip
 net-libs/nodejs inspector
-www-client/chromium jumbo-build
+app-text/xmlto text
+dev-lang/rust profiler
+
