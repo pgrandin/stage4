@@ -1,0 +1,2 @@
+sys-libs/libnvidia-container ~amd64
+app-containers/nvidia-container-toolkit ~amd64
