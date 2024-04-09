@@ -191,5 +191,8 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        tar cvfz /${target}-stage4.tgz -C ${{ env.stage4_fs }} .
+        tar cfz /${target}-stage4.tgz -C ${{ env.stage4_fs }} .
+        md5sum /${target}-stage4.tgz > /${target}-stage4.tgz.md5
+        cat /${target}-stage4.tgz.md5
         aws s3 cp /${target}-stage4.tgz s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz
+        aws s3 cp /${target}-stage4.tgz.md5 s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz.md5
