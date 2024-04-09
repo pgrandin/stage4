@@ -167,6 +167,11 @@ jobs:
             echo "AWS sync failed"
         fi
 
+    - name: configure stage4
+      run: |
+        cp chroot/04_configure.sh ${{ env.stage4_fs }}/04_configure.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
+
     - name: umount chroot
       if: always()
       run: |
@@ -179,3 +184,12 @@ jobs:
             echo "$mount is not a mount-point or already unmounted."
           fi
         done
+
+    - name: archive
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        tar cvfz /${target}-stage4.tgz -C ${{ env.stage4_fs }} .
+        aws s3 cp /${target}-stage4.tgz s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz
