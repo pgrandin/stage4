@@ -1,4 +1,4 @@
-hugetlbfs       /dev/hugepages          hugetlbfs       mode=1770,gid=78        0 0
+hugetlbfs       /hugepages          hugetlbfs       mode=1770,gid=78        0 0
 
 UUID=5a90a15b-2dbd-4cd9-89d4-080fd3c5f3f6 /home		   ext4    errors=remount-ro 0       1
 UUID=98c99389-e551-4ffc-a650-568a1be7b3a4 /var/lib/libvirt ext4    errors=remount-ro 0       1
