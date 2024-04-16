@@ -50,7 +50,6 @@ media-sound/spotify
 media-video/ffmpeg
 media-video/mplayer
 media-video/simplescreenrecorder
-media-video/vlc
 net-analyzer/nmap
 net-dns/bind-tools
 net-im/slack
