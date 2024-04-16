@@ -2,17 +2,17 @@ name: Build
 on:
   push:
     branches:
-      - yaml
+      - '*'
   pull_request:
     branches:
-      - yaml
+      - '*'
 
 jobs:
   build:
     runs-on: [self-hosted]
     strategy:
       matrix:
-        target: [Z390, XPS-9700, XPS-9730, R710]
+        target: [XPS-9730]
       fail-fast: false
     env:
       target: ${{ matrix.target }}
