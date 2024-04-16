@@ -6,7 +6,6 @@ app-arch/dpkg
 app-benchmarks/sysbench
 app-containers/docker
 app-containers/docker-compose
-app-containers/nvidia-container-toolkit
 app-editors/vim
 app-editors/vscode
 app-emulation/libvirt
@@ -18,7 +17,6 @@ app-misc/tmux
 app-portage/cpuid2cpuflags
 app-portage/eix
 app-portage/gentoolkit
-app-portage/layman
 app-text/evince
 app-text/wgetpaste
 dev-db/redis
@@ -63,7 +61,6 @@ net-misc/ntp
 net-misc/remmina
 net-misc/x11-ssh-askpass
 net-vpn/openvpn
-net-vpn/twingate
 net-wireless/blueman
 net-wireless/bluez
 net-wireless/wireless-tools
@@ -79,13 +76,11 @@ sys-block/fio
 sys-block/gparted
 sys-boot/efibootmgr
 sys-devel/crossdev
-sys-devel/gdb
 sys-firmware/broadcom-bt-firmware
 sys-firmware/intel-microcode
 sys-firmware/sof-firmware
 sys-fs/dosfstools
 sys-kernel/gentoo-sources
-sys-kernel/gentoo-sources:6.1.77
 sys-kernel/linux-firmware
 sys-power/acpi
 sys-power/powertop
