@@ -3,6 +3,7 @@ media-libs/harfbuzz icu
 sys-libs/zlib minizip
 net-libs/nodejs inspector
 app-text/xmlto text
+www-client/chromium ffmpeg-chromium
 
 # required by www-client/chromium-124.0.6367.29::gentoo[vaapi]
 # required by @selected
