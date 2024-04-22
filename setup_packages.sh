@@ -17,7 +17,7 @@ for folder in */*; do
     if [ -d "$folder" ]; then
         echo -n "$folder: "
         # Check if the line is present in the world file
-        if grep -qx "$folder" "$world_file"; then
+        if grep -qx "$folder" "../$world_file"; then
             echo "$folder is present in the world file, installing portage config"
             rsync -vrtza $folder/ /etc/portage/
         else
