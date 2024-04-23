@@ -108,7 +108,7 @@ jobs:
         cp step2.sh ${{ env.stage4_fs }}/
         yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
-        bash setup_packages.sh ${{ env.stage4_fs }}/var/lib/portage/world
+        bash setup_packages.sh ${{ env.stage4_fs }}
 
     - name: synchronize remote bucket
       env:
