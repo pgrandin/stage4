@@ -2,7 +2,7 @@
 
 stage4_fs=$1
 
-if [ ! -f "$stage4_fs" ]; then
+if [ ! -f "$stage4_fs/var/lib/portage/world" ]; then
     echo "The world file does not exist."
     exit 1
 fi
