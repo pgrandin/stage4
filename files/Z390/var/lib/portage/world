@@ -18,7 +18,6 @@ app-misc/tmux
 app-portage/cpuid2cpuflags
 app-portage/eix
 app-portage/gentoolkit
-app-portage/layman
 app-text/evince
 app-text/wgetpaste
 dev-db/redis
