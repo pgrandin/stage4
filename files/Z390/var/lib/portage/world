@@ -6,7 +6,6 @@ app-arch/dpkg
 app-benchmarks/sysbench
 app-containers/docker
 app-containers/docker-compose
-app-containers/nvidia-container-toolkit
 app-editors/vim
 app-editors/vscode
 app-emulation/libvirt
