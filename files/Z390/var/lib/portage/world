@@ -85,7 +85,6 @@ sys-firmware/intel-microcode
 sys-firmware/sof-firmware
 sys-fs/dosfstools
 sys-kernel/gentoo-sources
-sys-kernel/gentoo-sources:6.1.77
 sys-kernel/linux-firmware
 sys-power/acpi
 sys-power/powertop
