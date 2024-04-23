@@ -62,7 +62,6 @@ net-misc/ntp
 net-misc/remmina
 net-misc/x11-ssh-askpass
 net-vpn/openvpn
-net-vpn/twingate
 net-wireless/blueman
 net-wireless/bluez
 net-wireless/wireless-tools
