@@ -1,6 +1,7 @@
+app-admin/syslog-ng
 app-editors/vim
-app-emulation/docker
-app-emulation/docker-compose
+app-containers/docker
+app-containers/docker-compose
 app-emulation/libvirt
 app-misc/jq
 app-misc/tmux

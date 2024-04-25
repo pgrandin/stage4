@@ -17,15 +17,18 @@ eselect profile set default/linux/amd64/17.1
 [[ -f /etc/portage/binrepos.conf/gentoobinhost.conf ]] && rm /etc/portage/binrepos.conf/gentoobinhost.conf
 [[ -d /var/cache/distfiles ]] || mkdir /var/cache/distfiles
 
-MAKEOPTS="-j$(nproc)" emerge -q eix app-misc/jq awscli gentoolkit dev-vcs/git
+wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
+chmod +x /usr/local/bin/yq
+
+MAKEOPTS="-j$(nproc)" emerge -q eix awscli gentoolkit dev-vcs/git
 [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
 chown portage:portage /var/cache/eix
 eix-update
 
-aws s3 sync s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /var/cache/binpkgs/
+aws s3 sync --only-show-errors s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /var/cache/binpkgs/
 eclean packages
 # push back changes (useful to remove outdated packages right away)
-aws s3 sync --delete /var/cache/binpkgs/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
+aws s3 sync --delete  /var/cache/binpkgs/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
 
 [[ -d /tmp/kernel-configs-master ]] && rm -rf /tmp/kernel-configs-master
 # Prepare kernel config
@@ -34,14 +37,14 @@ export kconfig_sha=$(cd /tmp/kernel-configs-master/ && git rev-parse HEAD)
 export kversion=$(eix gentoo-source|awk -F'[()]' '/ [~]?6.1./ {version=$2} END{print version}')
 cat /tmp/kernel-configs-master/common_defconfig /tmp/kernel-configs-master/${target}_defconfig > /${target}_defconfig
 
-confs=$(cat /config.json | jq --arg HOST target -r '.configs[] | select (.["host"]=="'${target}'") | .kernel_configs |.[]' )
+confs=$(yq -r '.kernel_fragments[]' /config.yml)
 for conf in $confs; do
     echo "# for ${conf}" >> /${target}_defconfig
     cat /tmp/kernel-configs-master/${conf}_defconfig >> /${target}_defconfig
 done
 
 echo "=sys-kernel/gentoo-sources-${kversion} ~amd64" > /etc/portage/package.accept_keywords/gentoo-sources
-FEATURES="-getbinpkg" emerge -j$(nproc) -q =gentoo-sources-${kversion}
+FEATURES="-getbinpkg" emerge -j$(nproc) -q =gentoo-sources-${kversion} sys-kernel/linux-firmware
 cd /usr/src && ln -sf linux-${kversion}-gentoo linux
 export kpath="linux"
 cat /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig /${target}_defconfig  > /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
@@ -73,7 +76,7 @@ echo "America/Denver" > /etc/timezone
 
 echo "root:scrambled" | chpasswd
 
-netif=$(cat /config.json | jq --arg HOST "$target" -r '.configs[] | select (.["host"]==$HOST) | .network_interface')
+netif=$(yq -r '.network_interface' /config.yml)
 
 pushd /etc/init.d
 ln -s net.lo net.${netif}
@@ -89,7 +92,3 @@ sed -i -e "s/localhost/${target}/" /etc/conf.d/hostname
 
 useradd pierre
 usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre
-
-echo "Interactive shell from step2"
-# start an interactive shell
-/bin/bash

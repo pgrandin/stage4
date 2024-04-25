@@ -1,32 +1,199 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the workflow will run
+name: Build
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
-    branches: [ "master" ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - '*'
+  schedule:
+    - cron: '0 8 * * *'
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: pgrandin/stage4-ci:latest
+    runs-on: [self-hosted]
     strategy:
       matrix:
-        target: ['Z390']
-        
+        target: [XPS-9730, XPS-9700, R710, Z390]
+      fail-fast: false
+    env:
+      target: ${{ matrix.target }}
+      stage4_fs: "./stage4"
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      # Prepare the correct config
-      - name: Prepare the correct config
-        run: rsync -vrtza files/{{ matrix.target }}/ /
+    - name: Prepare Build Environment
+      run: |
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv awscli curl
+        wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
+        chmod +x /usr/local/bin/yq
+
+    - name: Prepare stage3
+      run: |
+        set -x
+
+        BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/"
+        # Fetch the latest stage3 file name from the latest-stage3-amd64-openrc-splitusr.txt
+        LATEST_INFO_URL="${BASEURL}latest-stage3-amd64-openrc-splitusr.txt"
+        STAGE3=$(wget -q -O - ${LATEST_INFO_URL} | grep -oP '\d+T\d+Z/stage3-amd64-openrc-splitusr-\d+T\d+Z\.tar\.xz' | head -n 1)
+
+        if [ -z "${STAGE3}" ]; then
+            echo "Failed to find the latest stage3 filename."
+            exit 1
+        fi
+
+        # Download the stage3 tarball
+        wget -c -O "/dl/${STAGE3##*/}" "${BASEURL}${STAGE3}"
+
+        # Verify if the file has been successfully downloaded
+        if [ -f "/dl/${STAGE3##*/}" ]; then
+          mkdir -p ${{ env.stage4_fs }}
+          tar -xJpf "/dl/${STAGE3##*/}" -C ${{ env.stage4_fs }} || (echo "Extraction failed. Removing downloaded file." && rm "/dl/${STAGE3##*/}")
+        else
+            echo "The download of the stage3 file failed."
+            exit 1
+        fi
+
+    - name: Prepare configs
+      run: |
+        virtualenv -p python3 ~/.venv
+        pip3 install jinja2-cli
+
+        # Path to the config.yml file
+        CONFIG_FILE="config.yml"
+
+        # Path to the Jinja2 template
+        TEMPLATE_FILE="make.conf.j2"
+
+        # Extract keys (hostnames) from the YAML file
+        # The following command gets the top-level keys in the YAML file
+        KEYS=$(yq e '. | keys | .[]' "${CONFIG_FILE}")
+
+        # Iterate over each key and process it
+        for key in ${KEYS}; do
+            if [[ "${key}" != "null" && ! -z "${key}" ]]; then
+                # Generate temporary YAML file for the current key
+                TEMP_YAML_FILE="temp_${key}.yml"
+                yq e ".${key}" "${CONFIG_FILE}" > "${TEMP_YAML_FILE}"
+
+                # Define the output file path
+                OUTPUT_FILE="files/${key}/etc/portage/make.conf"
+
+                # Ensure the output directory exists
+                mkdir -p "$(dirname "${OUTPUT_FILE}")"
+
+                # Run j2 using the temporary YAML file
+                jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+
+                echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
+
+                # Clean up the temporary file
+                rm -f "${TEMP_YAML_FILE}"
+            fi
+        done
+
+    - name: Prepare chroot
+      run: |
+        mount -t proc /proc ${{ env.stage4_fs }}/proc
+        mount --rbind /dev ${{ env.stage4_fs }}/dev
+        mount -t devpts devpts ${{ env.stage4_fs }}/dev/pts
+        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/dev/shm
+        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/tmp
+        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/cache
+
+        rsync -vrtza files/common/ ${{ env.stage4_fs }}/
+        rsync -vrtza files/${{ env.target }}/ ${{ env.stage4_fs }}/
+
+        cp step2.sh ${{ env.stage4_fs }}/
+        yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
+
+    - name: synchronize remote bucket
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        if aws s3 sync --delete s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "AWS sync succeeded"
+        else
+            echo "AWS sync failed"
+        fi
+        mkdir -p ${{ env.stage4_fs }}/var/cache/binpkgs
+        mount -o bind /dl/binpkgs/${{ env.target }}/ ${{ env.stage4_fs }}/var/cache/binpkgs
+
+    - name: chroot
+      run: |
+        cp chroot/00.sh ${{ env.stage4_fs }}/00.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /00.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /usr/bin/eclean packages
+
+    - name: push back changes
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        # push back changes (useful to remove outdated packages right away)
+        if aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "AWS sync succeeded"
+        else
+            echo "AWS sync failed"
+        fi
+
+    - name: build kernel
+      run: |
+        cp chroot/01_kernel.sh ${{ env.stage4_fs }}/01_kernel.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.target }}
+
+    - name: quirks
+      run: |
+        cp chroot/02_quirks.sh ${{ env.stage4_fs }}/02_quirks.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /02_quirks.sh ${{ env.target }}
+
+    - name: rebuild world
+      run: |
+        cp chroot/03_rebuild_world.sh ${{ env.stage4_fs }}/03_rebuild_world.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /03_rebuild_world.sh ${{ env.target }}
+
+    - name: push back changes
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        if aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "AWS sync succeeded"
+        else
+            echo "AWS sync failed"
+        fi
+
+    - name: configure stage4
+      run: |
+        cp chroot/04_configure.sh ${{ env.stage4_fs }}/04_configure.sh
+        chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
+
+    - name: umount chroot
+      if: always()
+      run: |
+        sync
+        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/dev/shm ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache/binpkgs ${{ env.stage4_fs }}/var/cache; do
+          if mountpoint -q "$mount"; then
+            echo "Attempting lazy unmount of $mount"
+            umount -l "$mount" || echo "Failed to lazily unmount $mount."
+          else
+            echo "$mount is not a mount-point or already unmounted."
+          fi
+        done
+
+    - name: archive
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        tar cfz /${target}-stage4.tgz -C ${{ env.stage4_fs }} .
+        md5sum /${target}-stage4.tgz > /${target}-stage4.tgz.md5
+        cat /${target}-stage4.tgz.md5
+        aws s3 cp /${target}-stage4.tgz s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz
+        aws s3 cp /${target}-stage4.tgz.md5 s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz.md5
