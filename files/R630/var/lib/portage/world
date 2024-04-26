@@ -1,0 +1,13 @@
+app-admin/syslog-ng
+app-editors/vim
+app-containers/docker
+app-containers/docker-compose
+app-emulation/libvirt
+app-misc/jq
+app-misc/tmux
+app-portage/eix
+net-misc/dhcpcd
+sys-boot/efibootmgr
+sys-boot/grub
+sys-fs/lvm2
+sys-kernel/linux-firmware
