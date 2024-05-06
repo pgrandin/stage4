@@ -1,0 +1,3 @@
+# app-emulation/docker-20.10.5 does not run on R710
+# https://forums.docker.com/t/docker-20-10-5-constant-error-level-error-msg-copy-shim-log-error-read-proc-self-fd-10-file-already-closed/106870
+>app-emulation/docker-20.10.4
