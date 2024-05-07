@@ -174,8 +174,39 @@ jobs:
         chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
 
     - name: umount chroot
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       if: always()
       run: |
+
+        # Base directory for search
+        search_dir="${{ env.stage4_fs }}/var/tmp/portage"
+
+        # Find files and process them
+        find "$search_dir" -type f -name "*build.log" | while read -r file; do
+            # Extract category and package from path
+            category=$(echo "$file" | awk -F'/' '{print $(NF-3)}')
+            package=$(echo "$file" | awk -F'/' '{print $(NF-2)}')
+
+            # New file name format: <category>_<package>.log
+            new_file_name="${category}_${package}.log"
+
+            # Directory where the file is located
+            dir=$(dirname "$file")
+
+            # Full path for the new file
+            new_file_path="$dir/$new_file_name"
+
+            # Rename the file
+            mv "$file" "$new_file_path"
+
+            # Upload to S3
+            aws s3 cp "$new_file_path" "s3://${AWS_BUCKET}/stage4/${target}/$new_file_name"
+        done
+
+
         sync
         for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/dev/shm ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache/binpkgs ${{ env.stage4_fs }}/var/cache; do
           if mountpoint -q "$mount"; then
