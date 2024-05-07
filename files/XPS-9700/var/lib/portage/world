@@ -18,7 +18,6 @@ app-misc/tmux
 app-portage/cpuid2cpuflags
 app-portage/eix
 app-portage/gentoolkit
-app-portage/layman
 app-text/evince
 app-text/wgetpaste
 dev-db/redis
@@ -63,7 +62,6 @@ net-misc/ntp
 net-misc/remmina
 net-misc/x11-ssh-askpass
 net-vpn/openvpn
-net-vpn/twingate
 net-wireless/blueman
 net-wireless/bluez
 net-wireless/wireless-tools
@@ -85,7 +83,6 @@ sys-firmware/intel-microcode
 sys-firmware/sof-firmware
 sys-fs/dosfstools
 sys-kernel/gentoo-sources
-sys-kernel/gentoo-sources:6.1.77
 sys-kernel/linux-firmware
 sys-power/acpi
 sys-power/powertop
