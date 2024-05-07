@@ -24,3 +24,7 @@ MAKEOPTS="-j$(nproc)" emerge -q eix gentoolkit dev-vcs/git
 [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
 chown portage:portage /var/cache/eix
 eix-update
+
+rm -rf /var/cache/binpkgs/acct-user/
+rm -rf /var/cache/binpkgs/acct-group/
+/usr/bin/eclean packages
