@@ -27,4 +27,5 @@ eix-update
 
 rm -rf /var/cache/binpkgs/acct-user/
 rm -rf /var/cache/binpkgs/acct-group/
+rm -rf /var/cache/binpkgs/x11-libs/
 /usr/bin/eclean packages
