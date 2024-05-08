@@ -19,10 +19,11 @@ rc-update add sshd default
 rc-update add syslog-ng default
 popd
 
-
 sed -i -e "s/localhost/${target}/" /etc/conf.d/hostname
 
 [[ -f /etc/conf.d/display-manager ]] && sed -i -e 's/xdm/lightdm/g' /etc/conf.d/display-manager 
+
+[[ grep "app-containers/docker$" /var/lib/portage/world ]] && rc-update add docker default
 
 [[ -f /etc/libvirt/libvirtd.conf ]] && cat <<EOF > /etc/libvirt/libvirtd.conf
 auth_unix_ro = "none"
