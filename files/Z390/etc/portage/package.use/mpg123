@@ -1,2 +1,0 @@
-# for the libsndfile / mpg123 circular dependency
-media-sound/mpg123 -pulseaudio
