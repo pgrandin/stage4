@@ -20,9 +20,6 @@ eselect profile set default/linux/amd64/23.0
 wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
 chmod +x /usr/local/bin/yq
 
-# for the python/bluetooth circular dependency
-MAKEOPTS="-j$(nproc)" USE="-bluetooth" emerge -q dev-lang/python
-
 MAKEOPTS="-j$(nproc)" emerge -q eix gentoolkit dev-vcs/git
 [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
 chown portage:portage /var/cache/eix
