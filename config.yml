@@ -54,7 +54,6 @@ XPS-9730:
     - audio
     - wifi
     - steam
-    - bluetooth
   makeopts: 16
   video_cards: intel
   network_interface: eno1
