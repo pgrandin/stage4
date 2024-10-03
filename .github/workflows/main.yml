@@ -105,6 +105,8 @@ jobs:
         rsync -vrtza files/common/ ${{ env.stage4_fs }}/
         rsync -vrtza files/${{ env.target }}/ ${{ env.stage4_fs }}/
 
+        tree ${{ env.stage4_fs }}/etc/portage/
+
         cp step2.sh ${{ env.stage4_fs }}/
         yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
