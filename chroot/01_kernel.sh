@@ -10,7 +10,7 @@ export kpath="linux"
 # Prepare kernel config
 git clone https://github.com/pgrandin/kernel-configs.git /tmp/kernel-configs-master/
 export kconfig_sha=$(cd /tmp/kernel-configs-master/ && git rev-parse HEAD)
-export kversion=$(eix gentoo-source | awk -F'[()]' '/ [~]?6.1./ {version=$2} END{print version}')
+export kversion=$(eix gentoo-source | awk -F'[()]' '/[[:space:]]~?6\.1\.[0-9]+/{version=$2} END{print version}')
 
 echo "efibootmgr -c -d /dev/nvme0n1 -l '\EFI\gentoo-${kversion}' -L 'Gentoo-${kversion}'" > /root/setup_efi.sh
 echo "cp /usr/src/${kpath}/arch/x86/boot/bzImage /boot/efi/EFI/gentoo-${kversion}" >> /root/setup_efi.sh
