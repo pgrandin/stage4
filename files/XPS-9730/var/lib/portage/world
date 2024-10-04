@@ -19,7 +19,6 @@ app-portage/eix
 app-portage/gentoolkit
 app-text/evince
 app-text/wgetpaste
-dev-db/redis
 dev-libs/optix
 dev-qt/qtcharts
 dev-qt/qtlocation
