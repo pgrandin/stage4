@@ -58,6 +58,4 @@ SANE_BACKENDS="{{ sane_backends | default('') }}"
 
 QEMU_SOFTMMU_TARGETS="aarch64 x86_64 arm"
 
-{% if l10n is defined %}
-L10N="{{ l10n }}"
-{% endif %}
+L10N="en en-US"
