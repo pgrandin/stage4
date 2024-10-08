@@ -47,7 +47,6 @@ media-sound/pavucontrol
 media-sound/pulseaudio
 media-sound/spotify
 media-video/ffmpeg
-media-video/mplayer
 media-video/simplescreenrecorder
 net-analyzer/nmap
 net-dns/bind-tools
