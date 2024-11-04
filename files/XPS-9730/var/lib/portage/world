@@ -20,15 +20,6 @@ app-portage/gentoolkit
 app-text/evince
 app-text/wgetpaste
 dev-libs/optix
-dev-qt/qtcharts
-dev-qt/qtlocation
-dev-qt/qtmultimedia
-dev-qt/qtpositioning
-dev-qt/qtquickcontrols2
-dev-qt/qtsensors
-dev-qt/qtserialbus
-dev-qt/qtserialport
-dev-qt/qtvirtualkeyboard
 dev-util/nvidia-cuda-toolkit
 dev-vcs/git
 media-fonts/fontawesome
@@ -83,8 +74,6 @@ sys-power/acpi
 sys-power/powertop
 sys-power/tlp
 sys-process/numactl
-www-client/firefox
-www-client/chromium
 x11-apps/xbacklight
 x11-apps/xev
 x11-apps/xrandr
