@@ -12,7 +12,7 @@ emerge-webrsync
 
 export AWS_BUCKET="pierre-packages"
 
-eselect profile set default/linux/amd64/17.1
+eselect profile set default/linux/amd64/23.0/split-usr
 
 [[ -f /etc/portage/binrepos.conf/gentoobinhost.conf ]] && rm /etc/portage/binrepos.conf/gentoobinhost.conf
 [[ -d /var/cache/distfiles ]] || mkdir /var/cache/distfiles
