@@ -3,9 +3,6 @@
 # Still needed as of 2024-11-04
 USE="-udev" emerge -q1 sys-apps/util-linux
 
-# Still needed as of 2024-11-04
-USE=profiler emerge -q1 virtual/rust
-
 # ----- block for libvpx build issues
 declare -a packages=(
   "dev-qt/qtwebengine"
