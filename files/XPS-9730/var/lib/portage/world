@@ -25,6 +25,7 @@ dev-vcs/git
 media-fonts/fontawesome
 media-fonts/noto
 media-fonts/noto-emoji
+media-gfx/blender
 media-gfx/geeqie
 media-gfx/gimp
 media-gfx/graphviz
