@@ -2,10 +2,7 @@
 
 set -e
 
-target=$1
-[[ -z ${target} ]] && exit 1
-
-if yq '.features[] | select(. == "X")' /config.yml >/dev/null 2>&1; then
+if yq '.features[] | select(. == "X")' /config.yml | grep -q X; then
     echo "X is present in features, building browsers"
     emerge -q www-client/firefox
     emerge -q www-client/chromium
