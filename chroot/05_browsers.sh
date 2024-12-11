@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 if yq '.features[] | select(. == "X")' /config.yml | grep -q X; then
     echo "X is present in features, building browsers"
     emerge -q www-client/firefox
@@ -9,4 +7,3 @@ if yq '.features[] | select(. == "X")' /config.yml | grep -q X; then
 else
     echo "X is not present in features, not building browsers"
 fi
-
