@@ -14,7 +14,7 @@ jobs:
     runs-on: [self-hosted]
     strategy:
       matrix:
-        target: [XPS-9730, R710, R630, Z390]
+        target: [XPS-9730]
       fail-fast: false
     env:
       target: ${{ matrix.target }}
@@ -180,7 +180,7 @@ jobs:
     - name: build browsers if needed
       run: |
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
-        chroot ${{ env.stage4_fs }} /bin/bash /05_browsers.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /bin/bash /05_browsers.sh ${{ env.stage4_fs }}
 
     - name: push back changes
       env:
