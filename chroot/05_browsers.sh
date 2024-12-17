@@ -11,11 +11,13 @@ if yq '.features[] | select(. == "X")' /config.yml | grep -q X; then
     echo "X is present in features, building browsers"
     echo "setting up firefox package from packages/www-client/firefox to $stage4_fs/etc/portage/"
     rsync -vrtza packages/www-client/firefox/ ../$stage4_fs/etc/portage/
-    emerge -q www-client/firefox
+    echo "Building firefox from chroot"
+    chroot ${stage4_fs} /bin/bash emerge -q www-client/firefox
 
     echo "setting up chromium package from packages/www-client/chromium to $stage4_fs/etc/portage/"
     rsync -vrtza packages/www-client/chromium/ ../$stage4_fs/etc/portage/
-    emerge -q www-client/chromium
+    echo "Building chromium from chroot"
+    chroot ${stage4_fs} /bin/bash emerge -q www-client/chromium
 else
     echo "X is not present in features, not building browsers"
 fi
