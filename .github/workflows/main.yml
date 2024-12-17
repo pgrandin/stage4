@@ -180,7 +180,7 @@ jobs:
     - name: build browsers if needed
       run: |
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
-        bash /05_browsers.sh ${{ env.stage4_fs }}
+        bash ${{ env.stage4_fs }}/05_browsers.sh ${{ env.stage4_fs }}
 
     - name: push back changes
       env:
