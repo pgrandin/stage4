@@ -1,6 +1,16 @@
 name: 1. Prepare Build Environment
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target'
+        required: true
+        type: choice
+        options:
+          - XPS-9730
+          - R710
+          - R630
+          - Z390
   push:
     branches: ['**']
   pull_request:
@@ -10,7 +20,7 @@ on:
 
 jobs:
   determine-targets:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -26,10 +36,13 @@ jobs:
 
   prepare:
     needs: determine-targets
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     strategy:
-      matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
+      matrix: ${{ github.event_name == 'workflow_dispatch' && format('{"target":["%s"]}', github.event.inputs.target) || fromJson(needs.determine-targets.outputs.matrix) }}
       fail-fast: false
+    env:
+      target: ${{ matrix.target }}
+      stage4_fs: "./stage4"
     steps:
       - uses: actions/checkout@v3
       
@@ -46,8 +59,8 @@ jobs:
           LATEST_INFO_URL="${BASEURL}latest-stage3-amd64-openrc-splitusr.txt"
           STAGE3=$(wget -q -O - ${LATEST_INFO_URL} | grep -oP '\d+T\d+Z/stage3-amd64-openrc-splitusr-\d+T\d+Z\.tar\.xz' | head -n 1)
           wget -c -O "stage3.tar.xz" "${BASEURL}${STAGE3}"
-          mkdir -p stage4
-          tar -xJpf "stage3.tar.xz" -C stage4
+          mkdir -p ${{ env.stage4_fs }}
+          tar -xJpf "stage3.tar.xz" -C ${{ env.stage4_fs }}
 
       - name: Prepare configs
         run: |
@@ -64,4 +77,3 @@ jobs:
             files/
             config.yml
           retention-days: 1
-

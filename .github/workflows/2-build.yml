@@ -17,30 +17,10 @@ on:
       - completed
 
 jobs:
-  get-targets:
-    if: github.event_name == 'workflow_run'
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        run: |
-          if [[ "${{ github.ref_name }}" =~ ^target/ ]]; then
-            TARGET=$(echo "${{ github.ref_name }}" | sed 's/^target\///')
-            TARGET_UPPER=$(echo "$TARGET" | tr '[:lower:]' '[:upper:]')
-            echo "matrix={\"target\":[\"$(echo $TARGET_UPPER)\"]}" >> $GITHUB_OUTPUT
-          else
-            echo "matrix={\"target\":[\"XPS-9730\",\"R710\",\"R630\",\"Z390\"]}" >> $GITHUB_OUTPUT
-          fi
-
   build:
-    needs: [get-targets]
-    if: |
-      always() &&
-      (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch')
     runs-on: [self-hosted]
     strategy:
-      matrix: ${{ github.event_name == 'workflow_run' && fromJson(needs.get-targets.outputs.matrix) || fromJson(format('{"target":["{0}"]}}', github.event.inputs.target)) }}
+      matrix: ${{ github.event_name == 'workflow_dispatch' && format('{"target":["%s"]}', github.event.inputs.target) || format('{"target":["%s"]}', github.event.workflow_run.head_branch) }}
       fail-fast: false
     env:
       target: ${{ matrix.target }}
@@ -94,3 +74,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws s3 sync --delete /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
+
