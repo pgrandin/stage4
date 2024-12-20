@@ -32,4 +32,4 @@ fi
 # ----- block for libvpx build issues
 
 # dev-lang/go circular dependency
-emerge -avq1 dev-lang/go-bootstrap
+emerge -q1 dev-lang/go-bootstrap
