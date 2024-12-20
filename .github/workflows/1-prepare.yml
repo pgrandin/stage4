@@ -1,0 +1,67 @@
+name: 1. Prepare Build Environment
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  determine-targets:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [[ "${{ github.ref_name }}" =~ ^target/ ]]; then
+            TARGET=$(echo "${{ github.ref_name }}" | sed 's/^target\///')
+            TARGET_UPPER=$(echo "$TARGET" | tr '[:lower:]' '[:upper:]')
+            echo "matrix={\"target\":[\"$(echo $TARGET_UPPER)\"]}" >> $GITHUB_OUTPUT
+          else
+            echo "matrix={\"target\":[\"XPS-9730\",\"R710\",\"R630\",\"Z390\"]}" >> $GITHUB_OUTPUT
+          fi
+
+  prepare:
+    needs: determine-targets
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Prepare Build Environment
+        run: |
+          apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            xz-utils python3-pip rsync wget virtualenv awscli curl tree
+          wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Prepare stage3
+        run: |
+          BASEURL="http://distfiles.gentoo.org/releases/amd64/autobuilds/"
+          LATEST_INFO_URL="${BASEURL}latest-stage3-amd64-openrc-splitusr.txt"
+          STAGE3=$(wget -q -O - ${LATEST_INFO_URL} | grep -oP '\d+T\d+Z/stage3-amd64-openrc-splitusr-\d+T\d+Z\.tar\.xz' | head -n 1)
+          wget -c -O "stage3.tar.xz" "${BASEURL}${STAGE3}"
+          mkdir -p stage4
+          tar -xJpf "stage3.tar.xz" -C stage4
+
+      - name: Prepare configs
+        run: |
+          virtualenv -p python3 ~/.venv
+          pip3 install jinja2-cli
+          bash prepare_configs.sh
+
+      - name: Upload preparation artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: prep-${{ matrix.target }}
+          path: |
+            stage4/
+            files/
+            config.yml
+          retention-days: 1
+
