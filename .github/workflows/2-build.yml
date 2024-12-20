@@ -5,6 +5,12 @@ on:
       target:
         description: 'Build target'
         required: true
+        type: choice
+        options:
+          - XPS-9730
+          - R710
+          - R630
+          - Z390
   workflow_run:
     workflows: ["1. Prepare Build Environment"]
     types:
@@ -29,16 +35,12 @@ jobs:
 
   build:
     needs: [get-targets]
-    if: github.event_name == 'workflow_run'
+    if: |
+      always() &&
+      (github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch')
     runs-on: [self-hosted]
     strategy:
-      matrix: ${{ fromJson(needs.get-targets.outputs.matrix) }}
-      
-  build-single:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted]
-    env:
-      target: ${{ github.event.inputs.target }}
+      matrix: ${{ github.event_name == 'workflow_run' && fromJson(needs.get-targets.outputs.matrix) || fromJson(format('{"target":["{0}"]}}', github.event.inputs.target)) }}
       fail-fast: false
     env:
       target: ${{ matrix.target }}
@@ -92,4 +94,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws s3 sync --delete /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/
-
