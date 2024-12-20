@@ -7,7 +7,6 @@ app-benchmarks/sysbench
 app-containers/docker
 app-containers/docker-compose
 app-editors/vim
-app-editors/vscode
 app-emulation/libvirt
 app-emulation/qemu
 app-emulation/virt-manager
@@ -19,13 +18,10 @@ app-portage/eix
 app-portage/gentoolkit
 app-text/evince
 app-text/wgetpaste
-dev-libs/optix
-dev-util/nvidia-cuda-toolkit
 dev-vcs/git
 media-fonts/fontawesome
 media-fonts/noto
 media-fonts/noto-emoji
-media-gfx/blender
 media-gfx/geeqie
 media-gfx/gimp
 media-gfx/graphviz
@@ -37,12 +33,10 @@ media-sound/alsa-utils
 media-sound/paprefs
 media-sound/pavucontrol
 media-sound/pulseaudio
-media-sound/spotify
 media-video/ffmpeg
 media-video/simplescreenrecorder
 net-analyzer/nmap
 net-dns/bind-tools
-net-im/slack
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/networkmanager
@@ -65,8 +59,8 @@ sys-block/fio
 sys-block/gparted
 sys-boot/efibootmgr
 sys-devel/crossdev
-sys-firmware/broadcom-bt-firmware
-sys-firmware/intel-microcode
+# sys-firmware/broadcom-bt-firmware
+# sys-firmware/intel-microcode
 sys-firmware/sof-firmware
 sys-fs/dosfstools
 sys-kernel/gentoo-sources
