@@ -1,0 +1,2 @@
+# required by several packages, including chromium xsane, simplescan
+app-text/xmlto text
