@@ -2,19 +2,40 @@ name: Build
 on:
   push:
     branches:
-      - '*'
+      - '**'
   pull_request:
     branches:
-      - '*'
+      - '**'
   schedule:
     - cron: '0 8 * * *'
 
 jobs:
+  # First, determine which targets to run
+  determine-targets:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [[ "${{ github.ref_name }}" =~ ^target/ ]]; then
+            # Extract target name from branch (everything after target/)
+            TARGET=$(echo "${{ github.ref_name }}" | sed 's/^target\///')
+            # Convert to uppercase for comparison
+            TARGET_UPPER=$(echo "$TARGET" | tr '[:lower:]' '[:upper:]')
+            # Create matrix with only the matching target
+            echo "matrix={\"target\":[\"$(echo $TARGET_UPPER)\"]}" >> $GITHUB_OUTPUT
+          else
+            # If not a target-specific branch, include all targets
+            echo "matrix={\"target\":[\"XPS-9730\",\"R710\",\"R630\",\"Z390\"]}" >> $GITHUB_OUTPUT
+          fi
+
+  # Main build job that uses the determined matrix  
   build:
+    needs: determine-targets
     runs-on: [self-hosted]
     strategy:
-      matrix:
-        target: [XPS-9730, R710, R630, Z390]
+      matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
       fail-fast: false
     env:
       target: ${{ matrix.target }}
