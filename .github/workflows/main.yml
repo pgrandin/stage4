@@ -34,6 +34,7 @@ jobs:
   build:
     needs: determine-targets
     runs-on: [self-hosted]
+    timeout-minutes: 800
     strategy:
       matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
       fail-fast: false
