@@ -8,21 +8,21 @@ www-client/chromium ffmpeg-chromium
 # required by www-client/chromium-124.0.6367.29::gentoo[vaapi]
 # required by @selected
 # required by @world (argument)
->=media-libs/libva-2.20.0 wayland
+media-libs/libva wayland
 # required by x11-libs/gtk+-3.24.39::gentoo[wayland]
 # required by www-client/chromium-124.0.6367.29::gentoo[-gtk4]
 # required by @selected
 # required by @world (argument)
->=media-libs/mesa-24.0.4 wayland
+media-libs/mesa wayland
 # required by www-client/chromium-124.0.6367.29::gentoo[bindist,-ffmpeg-chromium]
 # required by @selected
 # required by @world (argument)
->=media-video/ffmpeg-6.1.1-r5 chromium
+media-video/ffmpeg chromium
 # required by www-client/chromium-124.0.6367.29::gentoo[-gtk4]
 # required by @selected
 # required by @world (argument)
->=x11-libs/gtk+-3.24.39 wayland
+x11-libs/gtk+ wayland
 # required by www-client/chromium-124.0.6367.29::gentoo[system-toolchain]
 # required by @selected
 # required by @world (argument)
->=virtual/rust-1.75.0-r1 profiler
+virtual/rust profiler
