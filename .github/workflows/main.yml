@@ -204,13 +204,25 @@ jobs:
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
         bash ${{ env.stage4_fs }}/05_browsers.sh ${{ env.stage4_fs }}
 
-    - name: push back changes
+    - name: push back binpkgs
       env:
         AWS_BUCKET: pierre-packages
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        if aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+        if aws s3 sync --delete /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "AWS sync succeeded"
+        else
+            echo "AWS sync failed"
+        fi
+
+    - name: push back portage conf
+      env:
+        AWS_BUCKET: pierre-packages
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        if aws s3 sync --delete chroot/etc/portage/ s3://${AWS_BUCKET}/stage4/${target}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
             echo "AWS sync succeeded"
         else
             echo "AWS sync failed"
