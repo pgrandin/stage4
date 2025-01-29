@@ -222,7 +222,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
-        if aws s3 sync --delete chroot/etc/portage/ s3://${AWS_BUCKET}/stage4/${target}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
+        if aws s3 sync --delete ${{ env.stage4_fs }}/etc/portage/ s3://${AWS_BUCKET}/stage4/${target}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
             echo "AWS sync succeeded"
         else
             echo "AWS sync failed"
