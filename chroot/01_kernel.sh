@@ -27,9 +27,9 @@ echo "=sys-kernel/gentoo-sources-${kversion} ~amd64" >/etc/portage/package.accep
 FEATURES="-getbinpkg" emerge -j$(nproc) -q =gentoo-sources-${kversion} sys-kernel/linux-firmware
 cd /usr/src && ln -sf linux-${kversion}-gentoo linux
 
-cat /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig /${target}_defconfig >/usr/src/${kpath}/arch/x86/configs/${target}_defconfig
+cat /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig /${target}_defconfig > /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
 cd /usr/src/${kpath} && make defconfig ${target}_defconfig
 
 cd /usr/src/${kpath} && make -j$(nproc) && make modules_install
 
-tar cvfz /kernel-${kversion}.tgz /lib/modules/${kversion}-gentoo /usr/src/${kpath}/arch/x86_64/boot/bzImage
+tar cvfz /kernel-${kversion}.tgz /lib/modules/${kversion}-gentoo /usr/src/${kpath}/arch/x86_64/boot/bzImage /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
