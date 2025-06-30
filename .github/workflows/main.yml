@@ -66,6 +66,7 @@ jobs:
         fi
 
         # Download the stage3 tarball
+        mkdir -p /dl
         wget -c -O "/dl/${STAGE3##*/}" "${BASEURL}${STAGE3}"
 
         # Verify if the file has been successfully downloaded
