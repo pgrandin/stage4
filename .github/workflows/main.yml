@@ -47,7 +47,7 @@ jobs:
 
     - name: Prepare Build Environment
       run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv curl tree pipx
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip python3-venv rsync wget curl tree pipx
         pipx install awscli
         echo "/root/.local/bin" >> $GITHUB_PATH
         wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
@@ -82,8 +82,8 @@ jobs:
 
     - name: Prepare configs
       run: |
-        virtualenv -p python3 ~/.venv
-        pip3 install jinja2-cli
+        python3 -m venv ~/.venv
+        ~/.venv/bin/pip install jinja2-cli
 
         # Path to the config.yml file
         CONFIG_FILE="config.yml"
@@ -109,7 +109,7 @@ jobs:
                 mkdir -p "$(dirname "${OUTPUT_FILE}")"
 
                 # Run j2 using the temporary YAML file
-                jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+                ~/.venv/bin/jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
 
                 echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
 
