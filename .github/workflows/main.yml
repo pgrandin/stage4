@@ -109,7 +109,7 @@ jobs:
                 mkdir -p "$(dirname "${OUTPUT_FILE}")"
 
                 # Run j2 using the temporary YAML file
-                ~/.venv/bin/jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+                ~/.venv/bin/jinja2 --format=yaml "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
 
                 echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
 
