@@ -33,7 +33,7 @@ jobs:
   # Main build job that uses the determined matrix  
   build:
     needs: determine-targets
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, Linux]
     timeout-minutes: 800
     strategy:
       matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
@@ -209,6 +209,7 @@ jobs:
         chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
 
     - name: build browsers if needed
+      if: false  # Skipping browsers for this build
       run: |
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
         bash ${{ env.stage4_fs }}/05_browsers.sh ${{ env.stage4_fs }}
