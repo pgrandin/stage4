@@ -83,7 +83,7 @@ jobs:
     - name: Prepare configs
       run: |
         python3 -m venv ~/.venv
-        ~/.venv/bin/pip install jinja2-cli
+        ~/.venv/bin/pip install jinja2-cli pyyaml
 
         # Path to the config.yml file
         CONFIG_FILE="config.yml"
