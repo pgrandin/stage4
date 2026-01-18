@@ -30,6 +30,9 @@ rm -rf /var/cache/binpkgs/dev-lang/perl/
 rm -rf /var/cache/binpkgs/dev-perl/
 rm -rf /var/cache/binpkgs/virtual/
 
+# Regenerate binhost index after cleaning to avoid "non-existent binary" errors
+emaint binhost --fix
+
 # Install base tools (use --usepkg=n to build from source and avoid potential conflicts)
 # First update zlib to avoid circular dependency with cmake/curl
 MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n -1 sys-libs/zlib
