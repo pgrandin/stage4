@@ -7,7 +7,6 @@ app-benchmarks/sysbench
 app-containers/docker
 app-containers/docker-compose
 app-editors/vim
-app-editors/vscode
 app-emulation/libvirt
 app-emulation/qemu
 app-emulation/virt-manager
@@ -19,7 +18,6 @@ app-portage/eix
 app-portage/gentoolkit
 app-text/evince
 app-text/wgetpaste
-dev-libs/optix
 dev-util/nvidia-cuda-toolkit
 dev-vcs/git
 media-fonts/fontawesome
@@ -36,10 +34,9 @@ media-libs/exiftool
 media-sound/alsa-utils
 media-sound/paprefs
 media-sound/pavucontrol
-media-sound/pulseaudio
+media-sound/pipewire
 media-sound/spotify
 media-video/ffmpeg
-media-video/simplescreenrecorder
 net-analyzer/nmap
 net-dns/bind-tools
 net-im/slack
@@ -65,8 +62,6 @@ sys-block/fio
 sys-block/gparted
 sys-boot/efibootmgr
 sys-devel/crossdev
-sys-firmware/broadcom-bt-firmware
-sys-firmware/intel-microcode
 sys-firmware/sof-firmware
 sys-fs/dosfstools
 sys-kernel/gentoo-sources
@@ -81,12 +76,8 @@ x11-apps/xrandr
 x11-apps/xwininfo
 x11-base/xorg-drivers
 x11-base/xorg-server
-x11-misc/barrier
 x11-misc/i3lock
-x11-misc/lightdm
 x11-misc/py3status
 x11-misc/sddm
-x11-misc/slim
 x11-terms/terminator
-x11-themes/slim-themes
 x11-wm/i3

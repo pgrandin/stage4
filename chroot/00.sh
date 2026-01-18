@@ -24,6 +24,8 @@ chmod +x /usr/local/bin/yq
 rm -rf /var/cache/binpkgs/acct-user/
 rm -rf /var/cache/binpkgs/acct-group/
 rm -rf /var/cache/binpkgs/x11-libs/
+rm -rf /var/cache/binpkgs/x11-base/
+rm -rf /var/cache/binpkgs/x11-drivers/
 rm -rf /var/cache/binpkgs/dev-lang/perl/
 rm -rf /var/cache/binpkgs/dev-perl/
 rm -rf /var/cache/binpkgs/virtual/
