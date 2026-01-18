@@ -40,6 +40,10 @@ emaint binhost --fix
 # Install base tools (use --usepkg=n to build from source and avoid potential conflicts)
 # First update zlib to avoid circular dependency with cmake/curl
 MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n -1 sys-libs/zlib
+
+# Bootstrap pam without elogind to break circular dep: elogind->libudev->systemd-utils->libcap->pam->elogind
+USE="-elogind" MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n -1 sys-libs/pam sys-libs/libcap
+
 MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n eix gentoolkit dev-vcs/git
 [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
 chown portage:portage /var/cache/eix
