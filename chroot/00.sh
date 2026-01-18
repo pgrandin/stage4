@@ -26,8 +26,12 @@ rm -rf /var/cache/binpkgs/acct-group/
 rm -rf /var/cache/binpkgs/x11-libs/
 rm -rf /var/cache/binpkgs/x11-base/
 rm -rf /var/cache/binpkgs/x11-drivers/
+rm -rf /var/cache/binpkgs/x11-misc/
 rm -rf /var/cache/binpkgs/dev-lang/perl/
 rm -rf /var/cache/binpkgs/dev-perl/
+rm -rf /var/cache/binpkgs/dev-cpp/
+rm -rf /var/cache/binpkgs/media-libs/
+rm -rf /var/cache/binpkgs/media-sound/
 rm -rf /var/cache/binpkgs/virtual/
 
 # Regenerate binhost index after cleaning to avoid "non-existent binary" errors

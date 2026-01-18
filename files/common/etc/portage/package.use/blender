@@ -3,3 +3,8 @@ media-libs/freetype brotli harfbuzz
 media-libs/babl lcms
 media-libs/gegl lcms
 media-video/ffmpeg xvid mp3 lame x264 vpx theora vorbis opus
+
+# Required by blender
+sci-physics/bullet double-precision
+sci-libs/fftw threads
+media-libs/opensubdiv tbb
