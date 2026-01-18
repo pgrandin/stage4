@@ -1,5 +1,5 @@
-media-gfx/blender collada cycles cuda optix
+media-gfx/blender collada cycles cuda
 media-libs/freetype brotli harfbuzz
 media-libs/babl lcms
 media-libs/gegl lcms
-media-video/ffmpeg xvid mp3 x264 vpx theora vorbis opus
+media-video/ffmpeg xvid mp3 lame x264 vpx theora vorbis opus

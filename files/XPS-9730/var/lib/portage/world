@@ -34,7 +34,7 @@ media-libs/exiftool
 media-sound/alsa-utils
 media-sound/paprefs
 media-sound/pavucontrol
-media-sound/pipewire
+media-video/pipewire
 media-sound/spotify
 media-video/ffmpeg
 net-analyzer/nmap
