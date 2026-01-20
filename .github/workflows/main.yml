@@ -211,7 +211,6 @@ jobs:
         chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
 
     - name: build browsers if needed
-      if: false  # Skipping browsers for this build
       run: |
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
         bash ${{ env.stage4_fs }}/05_browsers.sh ${{ env.stage4_fs }}

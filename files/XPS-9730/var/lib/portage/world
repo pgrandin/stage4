@@ -80,4 +80,5 @@ x11-misc/i3lock
 x11-misc/py3status
 x11-misc/sddm
 x11-terms/terminator
+www-client/firefox
 x11-wm/i3
