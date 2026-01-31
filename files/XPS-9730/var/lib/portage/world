@@ -10,6 +10,7 @@ app-editors/vim
 app-emulation/libvirt
 app-emulation/qemu
 app-emulation/virt-manager
+app-eselect/eselect-python
 app-eselect/eselect-repository
 app-misc/jq
 app-misc/tmux
@@ -19,6 +20,8 @@ app-portage/gentoolkit
 app-text/evince
 app-text/wgetpaste
 dev-util/nvidia-cuda-toolkit
+dev-python/jinja2
+dev-util/github-cli
 dev-vcs/git
 media-fonts/fontawesome
 media-fonts/noto

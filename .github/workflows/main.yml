@@ -3,11 +3,12 @@ on:
   push:
     branches:
       - '**'
-  pull_request:
-    branches:
-      - '**'
   schedule:
     - cron: '0 8 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   S3_ENDPOINT: https://s3.sd.kazer.org
@@ -31,7 +32,7 @@ jobs:
             echo "matrix={\"target\":[\"$(echo $TARGET_UPPER)\"]}" >> $GITHUB_OUTPUT
           else
             # If not a target-specific branch, include all targets
-            echo "matrix={\"target\":[\"XPS-9730\",\"R710\",\"R630\",\"Z390\"]}" >> $GITHUB_OUTPUT
+            echo "matrix={\"target\":[\"XPS-9730\"]}" >> $GITHUB_OUTPUT
           fi
 
   # Main build job that uses the determined matrix
