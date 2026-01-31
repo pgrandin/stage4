@@ -36,4 +36,4 @@ unix_sock_rw_perms = "0770"
 EOF
 
 useradd pierre
-usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre
+usermod -aG wheel,uucp,audio,video,usb,docker,kvm,plugdev pierre
