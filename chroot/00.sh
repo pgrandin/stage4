@@ -20,12 +20,33 @@ eselect profile set default/linux/amd64/23.0/split-usr
 wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
 chmod +x /usr/local/bin/yq
 
-MAKEOPTS="-j$(nproc)" emerge -q eix gentoolkit dev-vcs/git
+# Clean up cached binpkgs that may conflict with newer versions in stage3
+rm -rf /var/cache/binpkgs/acct-user/
+rm -rf /var/cache/binpkgs/acct-group/
+rm -rf /var/cache/binpkgs/x11-libs/
+rm -rf /var/cache/binpkgs/x11-base/
+rm -rf /var/cache/binpkgs/x11-drivers/
+rm -rf /var/cache/binpkgs/x11-misc/
+rm -rf /var/cache/binpkgs/dev-lang/perl/
+rm -rf /var/cache/binpkgs/dev-perl/
+rm -rf /var/cache/binpkgs/dev-cpp/
+rm -rf /var/cache/binpkgs/media-libs/
+rm -rf /var/cache/binpkgs/media-sound/
+rm -rf /var/cache/binpkgs/virtual/
+
+# Regenerate binhost index after cleaning to avoid "non-existent binary" errors
+emaint binhost --fix
+
+# Install base tools (use --usepkg=n to build from source and avoid potential conflicts)
+# First update zlib to avoid circular dependency with cmake/curl
+MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n -1 sys-libs/zlib
+
+# Bootstrap pam without elogind to break circular dep: elogind->libudev->systemd-utils->libcap->pam->elogind
+USE="-elogind" MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n -1 sys-libs/pam sys-libs/libcap
+
+MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n eix gentoolkit dev-vcs/git
 [[ -d /var/cache/eix ]] || mkdir /var/cache/eix
 chown portage:portage /var/cache/eix
 eix-update
 
-rm -rf /var/cache/binpkgs/acct-user/
-rm -rf /var/cache/binpkgs/acct-group/
-rm -rf /var/cache/binpkgs/x11-libs/
 /usr/bin/eclean packages

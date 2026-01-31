@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: '0 8 * * *'
 
+env:
+  S3_ENDPOINT: https://s3.sd.kazer.org
+  S3_BUCKET: github-artifacts
+
 jobs:
   # First, determine which targets to run
   determine-targets:
@@ -30,10 +34,10 @@ jobs:
             echo "matrix={\"target\":[\"XPS-9730\",\"R710\",\"R630\",\"Z390\"]}" >> $GITHUB_OUTPUT
           fi
 
-  # Main build job that uses the determined matrix  
+  # Main build job that uses the determined matrix
   build:
     needs: determine-targets
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, Linux]
     timeout-minutes: 800
     strategy:
       matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
@@ -47,7 +51,9 @@ jobs:
 
     - name: Prepare Build Environment
       run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip rsync wget virtualenv awscli curl tree
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip python3-venv rsync wget curl tree pipx
+        pipx install awscli
+        echo "/root/.local/bin" >> $GITHUB_PATH
         wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
         chmod +x /usr/local/bin/yq
 
@@ -80,8 +86,8 @@ jobs:
 
     - name: Prepare configs
       run: |
-        virtualenv -p python3 ~/.venv
-        pip3 install jinja2-cli
+        python3 -m venv ~/.venv
+        ~/.venv/bin/pip install jinja2-cli pyyaml
 
         # Path to the config.yml file
         CONFIG_FILE="config.yml"
@@ -107,7 +113,7 @@ jobs:
                 mkdir -p "$(dirname "${OUTPUT_FILE}")"
 
                 # Run j2 using the temporary YAML file
-                jinja2 "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
+                ~/.venv/bin/jinja2 --format=yaml "${TEMPLATE_FILE}" "${TEMP_YAML_FILE}" > "${OUTPUT_FILE}"
 
                 echo "Generated configuration for ${key} in ${OUTPUT_FILE}"
 
@@ -137,16 +143,16 @@ jobs:
 
     - name: synchronize remote bucket
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --delete s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "AWS sync succeeded"
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "S3 sync succeeded"
         else
-            echo "AWS sync failed"
+            echo "S3 sync failed (bucket may be empty for new builds)"
         fi
         mkdir -p ${{ env.stage4_fs }}/var/cache/binpkgs
+        mkdir -p /dl/binpkgs/${{ env.target }}
         mount -o bind /dl/binpkgs/${{ env.target }}/ ${{ env.stage4_fs }}/var/cache/binpkgs
 
     - name: chroot
@@ -157,15 +163,14 @@ jobs:
 
     - name: push back changes
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
         # push back changes (useful to remove outdated packages right away)
-        if aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "AWS sync succeeded"
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "S3 sync succeeded"
         else
-            echo "AWS sync failed"
+            echo "S3 sync failed"
         fi
 
     - name: build kernel
@@ -175,11 +180,10 @@ jobs:
 
     - name: push kernel archive to s3
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        aws s3 cp ${{ env.stage4_fs }}/kernel-*.tgz s3://${AWS_BUCKET}/stage4/${target}/
+        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} ${{ env.stage4_fs }}/kernel-*.tgz s3://${{ env.S3_BUCKET }}/stage4/${target}/
 
     - name: quirks
       run: |
@@ -193,14 +197,13 @@ jobs:
 
     - name: push back changes
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --delete  /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "AWS sync succeeded"
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "S3 sync succeeded"
         else
-            echo "AWS sync failed"
+            echo "S3 sync failed"
         fi
 
     - name: configure stage4
@@ -215,33 +218,30 @@ jobs:
 
     - name: push back binpkgs
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --delete /dl/binpkgs/${{ env.target }}/ s3://${AWS_BUCKET}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "AWS sync succeeded"
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "S3 sync succeeded"
         else
-            echo "AWS sync failed"
+            echo "S3 sync failed"
         fi
 
     - name: push back portage conf
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --delete ${{ env.stage4_fs }}/etc/portage/ s3://${AWS_BUCKET}/stage4/${target}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "AWS sync succeeded"
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete ${{ env.stage4_fs }}/etc/portage/ s3://${{ env.S3_BUCKET }}/stage4/${target}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
+            echo "S3 sync succeeded"
         else
-            echo "AWS sync failed"
+            echo "S3 sync failed"
         fi
 
     - name: umount chroot
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       if: always()
       run: |
 
@@ -267,7 +267,7 @@ jobs:
             mv "$file" "$new_file_path"
 
             # Upload to S3
-            aws s3 cp "$new_file_path" "s3://${AWS_BUCKET}/stage4/${target}/$new_file_name"
+            aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$new_file_path" "s3://${{ env.S3_BUCKET }}/stage4/${target}/$new_file_name"
         done
 
 
@@ -283,12 +283,11 @@ jobs:
 
     - name: archive
       env:
-        AWS_BUCKET: pierre-packages
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
         tar cfz /${target}-stage4.tgz -C ${{ env.stage4_fs }} .
         md5sum /${target}-stage4.tgz > /${target}-stage4.tgz.md5
         cat /${target}-stage4.tgz.md5
-        aws s3 cp /${target}-stage4.tgz s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz
-        aws s3 cp /${target}-stage4.tgz.md5 s3://${AWS_BUCKET}/stage4/${target}/${target}-stage4.tgz.md5
+        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} /${target}-stage4.tgz s3://${{ env.S3_BUCKET }}/stage4/${target}/${target}-stage4.tgz
+        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} /${target}-stage4.tgz.md5 s3://${{ env.S3_BUCKET }}/stage4/${target}/${target}-stage4.tgz.md5
