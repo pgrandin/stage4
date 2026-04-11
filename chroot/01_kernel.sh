@@ -32,4 +32,6 @@ cd /usr/src/${kpath} && make defconfig ${target}_defconfig
 
 cd /usr/src/${kpath} && make -j$(nproc) && make modules_install
 
-tar cvfz /kernel-${kversion}.tgz /lib/modules/${kversion}-gentoo /usr/src/${kpath}/arch/x86_64/boot/bzImage /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
+# Use the actual built kernel version for the archive, in case eix and sources diverge
+built_kversion=$(make -s -C /usr/src/${kpath} kernelrelease)
+tar cvfz /kernel-${kversion}.tgz /lib/modules/${built_kversion} /usr/src/${kpath}/arch/x86_64/boot/bzImage /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
