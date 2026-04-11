@@ -33,6 +33,8 @@ rm -rf /var/cache/binpkgs/dev-cpp/
 rm -rf /var/cache/binpkgs/media-libs/
 rm -rf /var/cache/binpkgs/media-sound/
 rm -rf /var/cache/binpkgs/virtual/
+rm -rf /var/cache/binpkgs/dev-lang/python/
+rm -rf /var/cache/binpkgs/sys-apps/portage/
 
 # Regenerate binhost index after cleaning to avoid "non-existent binary" errors
 emaint binhost --fix
