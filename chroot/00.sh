@@ -10,8 +10,6 @@ echo "nameserver 1.1.1.1" > /etc/resolv.conf
 env-update && source /etc/profile
 emerge-webrsync
 
-export AWS_BUCKET="pierre-packages"
-
 eselect profile set default/linux/amd64/23.0/split-usr
 
 [[ -f /etc/portage/binrepos.conf/gentoobinhost.conf ]] && rm /etc/portage/binrepos.conf/gentoobinhost.conf
