@@ -37,7 +37,7 @@ jobs:
   # Main build job that uses the determined matrix
   build:
     needs: determine-targets
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, stage4]
     timeout-minutes: 800
     strategy:
       matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
