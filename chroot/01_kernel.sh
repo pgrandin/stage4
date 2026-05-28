@@ -25,7 +25,7 @@ done
 
 echo "=sys-kernel/gentoo-sources-${kversion} ~amd64" >/etc/portage/package.accept_keywords/gentoo-sources
 FEATURES="-getbinpkg" emerge -j$(nproc) -q =gentoo-sources-${kversion} sys-kernel/linux-firmware
-cd /usr/src && ln -sf linux-${kversion}-gentoo linux
+cd /usr/src && ln -sf "$(ls -d linux-*-gentoo* 2>/dev/null | sort -V | tail -1)" linux
 
 cat /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig /${target}_defconfig > /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
 cd /usr/src/${kpath} && make defconfig ${target}_defconfig

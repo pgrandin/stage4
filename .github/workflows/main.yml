@@ -128,8 +128,13 @@ jobs:
         mount --rbind /dev ${{ env.stage4_fs }}/dev
         mount -t devpts devpts ${{ env.stage4_fs }}/dev/pts
         mount -t tmpfs tmpfs ${{ env.stage4_fs }}/dev/shm
-        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/tmp
-        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/var/cache
+        # /var/tmp and /var/cache are disk-backed (bind from /scratch) rather than
+        # tmpfs: a RAM-capped tmpfs (~8G on a 16G builder) can't hold large package
+        # build dirs (rust/llvm/gcc need >8G). Still separate mountpoints, so the
+        # final archive excludes them after umount.
+        mkdir -p /scratch/var-tmp /scratch/var-cache
+        mount -o bind /scratch/var-tmp ${{ env.stage4_fs }}/var/tmp
+        mount -o bind /scratch/var-cache ${{ env.stage4_fs }}/var/cache
 
         rsync -vrtza files/common/ ${{ env.stage4_fs }}/
         rsync -vrtza files/${{ env.target }}/ ${{ env.stage4_fs }}/
