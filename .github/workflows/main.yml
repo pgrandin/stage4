@@ -196,6 +196,22 @@ jobs:
 
     - name: rebuild world
       run: |
+        # Size MAKEOPTS to what this runner actually has. -j$(nproc) only
+        # counts cores; on a memory-constrained runner that oversubscribes RAM
+        # and OOM-kills heavy compiles. Bound jobs by the smaller of core count
+        # and a ~2 GiB-per-job memory budget, measured against the container's
+        # real cgroup limit (the chroot can't see /sys, so we compute it here
+        # and bake it into make.conf for every emerge step downstream).
+        CORES=$(nproc)
+        LIMIT=$(cat /sys/fs/cgroup/memory.max 2>/dev/null || echo max)
+        case "$LIMIT" in
+          ''|max) LIMIT=$(( $(awk '/MemTotal/{print $2}' /proc/meminfo) * 1024 )) ;;
+        esac
+        MEM_GIB=$(( LIMIT / 1024 / 1024 / 1024 ))
+        MEM_JOBS=$(( MEM_GIB / 2 )); [ "$MEM_JOBS" -lt 1 ] && MEM_JOBS=1
+        JOBS=$CORES; [ "$MEM_JOBS" -lt "$JOBS" ] && JOBS=$MEM_JOBS
+        echo "Resource-aware MAKEOPTS: -j${JOBS} -l${CORES} (cores=${CORES}, mem-limit=${MEM_GIB}GiB)"
+        sed -i "s/^MAKEOPTS=.*/MAKEOPTS=\"-j${JOBS} -l${CORES}\"/" ${{ env.stage4_fs }}/etc/portage/make.conf
         cp chroot/03_rebuild_world.sh ${{ env.stage4_fs }}/03_rebuild_world.sh
         chroot ${{ env.stage4_fs }} /bin/bash /03_rebuild_world.sh ${{ env.target }}
 

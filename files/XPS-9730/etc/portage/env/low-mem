@@ -1,0 +1,5 @@
+# Cap parallelism for packages whose per-job RAM far exceeds the usual
+# ~2 GiB rule of thumb (large C++ translation units). Referenced from
+# package.env. -j2 keeps even a 4 GiB/job compile inside the runner's
+# memory limit instead of OOM-killing the build.
+MAKEOPTS="-j2"
