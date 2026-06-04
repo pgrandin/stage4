@@ -30,8 +30,9 @@ jobs:
             # Create matrix with only the matching target
             echo "matrix={\"target\":[\"$(echo $TARGET_UPPER)\"]}" >> $GITHUB_OUTPUT
           else
-            # If not a target-specific branch, include all targets
-            echo "matrix={\"target\":[\"XPS-9730\",\"R710\",\"R630\"]}" >> $GITHUB_OUTPUT
+            # If not a target-specific branch, build all active targets.
+            # R710 and R630 are retired; XPS-9730 is the only live target.
+            echo "matrix={\"target\":[\"XPS-9730\"]}" >> $GITHUB_OUTPUT
           fi
 
   # Main build job that uses the determined matrix
