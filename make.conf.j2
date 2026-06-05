@@ -44,13 +44,13 @@ USE="${USE} abi_x86_32"
 # required by libvirt:
 USE="${USE} pkcs11 tools"
 
-# PYTHON_TARGETS is an incremental USE_EXPAND var: a bare "python3_13" ADDS
-# to the profile default (which still carries python3_12), yielding an
-# effective "python3_12 python3_13". Multi-impl python libs then build for
-# both, and never match the single-impl binpkgs on the binhost -> ~140
-# needless source rebuilds. Clear the profile set with -* so exactly one
-# impl is enabled and the binpkgs match.
-PYTHON_TARGETS="-* python3_13"
+# Pin python to a single impl so multi-impl python libs match the
+# single-impl binpkgs on the binhost (a "python3_12 python3_13" build
+# matches none of them -> needless source rebuilds). PYTHON_TARGETS is
+# NON-incremental in make.conf, so a plain value REPLACES the profile
+# default rather than adding to it -- no "-*" needed (and "-*" is invalid
+# here: it triggers "Invalid '-' operator in non-incremental variable").
+PYTHON_TARGETS="python3_13"
 PYTHON_SINGLE_TARGET="python3_13"
 
 # This sets the language of build output to English.
