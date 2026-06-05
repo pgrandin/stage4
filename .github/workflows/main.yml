@@ -248,6 +248,20 @@ jobs:
             echo "S3 sync failed"
         fi
 
+    # Salvage binpkgs when the build fails or is cancelled (e.g. a long browser
+    # compile that times out) so a re-run resumes from cache instead of starting
+    # from scratch. ADDITIVE sync (no --delete): a partial build hasn't rebuilt
+    # everything yet, so pruning the binhost from incomplete state would discard
+    # good packages. The normal --delete prune only runs on the success path above.
+    - name: salvage binpkgs (on failure/cancel)
+      if: ${{ failure() || cancelled() }}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+      run: |
+        echo "Build did not complete cleanly — saving binpkgs built so far (additive, no prune)"
+        aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | grep -v '^Completed' || echo "salvage sync failed"
+
     - name: push back portage conf
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
