@@ -39,7 +39,12 @@ jobs:
   build:
     needs: determine-targets
     runs-on: [self-hosted, stage4]
-    timeout-minutes: 800
+    # 800 min (13h20m) was too short for a cold cache: @world (~5h) + a
+    # from-source chromium (~14h on the 6-core dgaming i5) overran it and the
+    # job was killed mid-chromium every time (reported as "cancelled"). Raised
+    # to let chromium finish once and get cached; subsequent builds pull it as
+    # a binpkg and run in a few hours.
+    timeout-minutes: 1800
     strategy:
       matrix: ${{ fromJson(needs.determine-targets.outputs.matrix) }}
       fail-fast: false
