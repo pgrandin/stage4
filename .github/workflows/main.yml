@@ -238,6 +238,9 @@ jobs:
         chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
 
     - name: build browsers if needed
+      # Withdrawn (2026-10-26) until the base image builds green again after
+      # the Jul-Oct runner outage. Drop this line to bring firefox back.
+      if: ${{ false }}
       run: |
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
         bash ${{ env.stage4_fs }}/05_browsers.sh ${{ env.stage4_fs }}
