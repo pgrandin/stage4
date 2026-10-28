@@ -169,7 +169,7 @@ jobs:
       run: |
         cp chroot/00.sh ${{ env.stage4_fs }}/00.sh
         chroot ${{ env.stage4_fs }} /bin/bash /00.sh ${{ env.target }}
-        chroot ${{ env.stage4_fs }} /usr/bin/eclean packages
+        chroot ${{ env.stage4_fs }} /usr/bin/eclean packages --unique-use
 
     - name: push back changes
       env:

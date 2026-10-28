@@ -49,4 +49,7 @@ MAKEOPTS="-j$(nproc)" emerge -q --usepkg=n eix gentoolkit dev-vcs/git
 chown portage:portage /var/cache/eix
 eix-update
 
-/usr/bin/eclean packages
+# --unique-use: drop older builds of the same version+USE. buildpkg +
+# binpkg-multi-instance otherwise keeps every rebuild (git/gentoolkit are
+# rebuilt with --usepkg=n each run) and the binhost grew to 59 GiB.
+/usr/bin/eclean packages --unique-use
