@@ -10,7 +10,11 @@ PORTDIR="/var/db/repos/gentoo"
 DISTDIR="/var/cache/distfiles"
 PKGDIR="/var/cache/binpkgs"
 
-FEATURES="buildpkg getbinpkg parallel-fetch parallel-install"
+# -binpkg-multi-instance: a rebuild overwrites the one binpkg per version
+# instead of adding a new -N build. With it on, every run that rebuilt a
+# package (linux-firmware, --usepkg=n tools) added a copy and the binhost
+# grew to 59 GiB of duplicates.
+FEATURES="buildpkg getbinpkg parallel-fetch parallel-install -binpkg-multi-instance"
 
 PORTAGE_BINHOST="http://s3.sd.kazer.org/public-artifacts/stage4/{{ hostname }}/binpkgs/"
 
