@@ -13,7 +13,7 @@ echo "root:scrambled" | chpasswd
 netif=$(yq -r '.network_interface' /config.yml)
 
 pushd /etc/init.d
-ln -s net.lo net.${netif}
+ln -sf net.lo net.${netif}
 rc-update add net.${netif} default
 rc-update add sshd default
 rc-update add syslog-ng default
@@ -35,5 +35,5 @@ unix_sock_ro_perms = "0777"
 unix_sock_rw_perms = "0770"
 EOF
 
-useradd pierre
+id -u pierre >/dev/null 2>&1 || useradd pierre
 usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre

@@ -38,12 +38,12 @@ media-video/pipewire
 media-sound/spotify
 media-video/ffmpeg
 net-analyzer/nmap
-net-dns/bind-tools
+net-dns/bind
 net-im/slack
 net-misc/dhcpcd
 net-misc/keychain
 net-misc/networkmanager
-net-misc/ntp
+net-misc/ntpsec
 net-misc/remmina
 net-misc/x11-ssh-askpass
 net-vpn/openvpn
@@ -78,6 +78,6 @@ x11-base/xorg-drivers
 x11-base/xorg-server
 x11-misc/i3lock
 x11-misc/py3status
-x11-misc/sddm
+gui-apps/sddm
 x11-terms/terminator
 x11-wm/i3
