@@ -15,4 +15,8 @@ OPTS="--jobs 4 --load-average $(nproc)"
 # (--exclude doesn't work: portage is a hard system dep, so excluding it makes
 # the -e dep graph unsatisfiable and emerge bails at resolution.) A genuine
 # build failure resumes once and re-fails, so the real error still surfaces.
-emerge -eq @world $OPTS || emerge --resume $OPTS
+if [[ "${2:-}" == --resume ]]; then
+    emerge --resume $OPTS || emerge --resume $OPTS
+else
+    emerge -eq @world $OPTS || emerge --resume $OPTS
+fi

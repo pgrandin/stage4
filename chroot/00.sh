@@ -18,23 +18,7 @@ eselect profile set default/linux/amd64/23.0/split-usr
 wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
 chmod +x /usr/local/bin/yq
 
-# Clean up cached binpkgs that may conflict with newer versions in stage3
-rm -rf /var/cache/binpkgs/acct-user/
-rm -rf /var/cache/binpkgs/acct-group/
-rm -rf /var/cache/binpkgs/x11-libs/
-rm -rf /var/cache/binpkgs/x11-base/
-rm -rf /var/cache/binpkgs/x11-drivers/
-rm -rf /var/cache/binpkgs/x11-misc/
-rm -rf /var/cache/binpkgs/dev-lang/perl/
-rm -rf /var/cache/binpkgs/dev-perl/
-rm -rf /var/cache/binpkgs/dev-cpp/
-rm -rf /var/cache/binpkgs/media-libs/
-rm -rf /var/cache/binpkgs/media-sound/
-rm -rf /var/cache/binpkgs/virtual/
-rm -rf /var/cache/binpkgs/dev-lang/python/
-rm -rf /var/cache/binpkgs/sys-apps/portage/
-
-# Regenerate binhost index after cleaning to avoid "non-existent binary" errors
+# Reindex retained packages; Portage checks version, USE and ABI compatibility.
 emaint binhost --fix
 
 # Install base tools (use --usepkg=n to build from source and avoid potential conflicts)
