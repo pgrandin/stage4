@@ -21,6 +21,15 @@ env:
   S3_BUCKET: public-artifacts
 
 jobs:
+  check-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check build scripts
+        run: |
+          python3 -m unittest discover -s tests
+          for script in *.sh chroot/*.sh; do bash -n "$script"; done
+
   # First, determine which targets to run
   determine-targets:
     runs-on: ubuntu-latest
@@ -44,7 +53,7 @@ jobs:
 
   # Main build job that uses the determined matrix
   build:
-    needs: determine-targets
+    needs: [determine-targets, check-scripts]
     runs-on: [self-hosted, stage4]
     # 800 min (13h20m) was too short for a cold cache: @world (~5h) + a
     # from-source chromium (~14h on the 6-core dgaming i5) overran it and the
@@ -63,11 +72,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
-    - name: Check build scripts
-      run: |
-        python3 -m unittest discover -s tests
-        for script in *.sh chroot/*.sh; do bash -n "$script"; done
 
     - name: Select persistent checkpoint
       env:
