@@ -9,6 +9,12 @@ on:
       - '**'
   schedule:
     - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      fresh:
+        description: Start a new filesystem instead of resuming the unfinished checkpoint
+        type: boolean
+        default: false
 
 env:
   S3_ENDPOINT: https://s3.sd.kazer.org
@@ -54,8 +60,6 @@ jobs:
       cancel-in-progress: false
     env:
       target: ${{ matrix.target }}
-      build_dir: /scratch/builds/${{ github.run_id }}
-      stage4_fs: /scratch/builds/${{ github.run_id }}/stage4
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -64,6 +68,16 @@ jobs:
       run: |
         python3 -m unittest discover -s tests
         for script in *.sh chroot/*.sh; do bash -n "$script"; done
+
+    - name: Select persistent checkpoint
+      env:
+        FRESH: ${{ inputs.fresh || false }}
+      run: |
+        args=()
+        if [ "$FRESH" = true ]; then args+=(--fresh); fi
+        build_dir=$(python3 build_checkpoint.py "$target" "$GITHUB_RUN_ID" "${args[@]}")
+        printf 'build_dir=%s\nstage4_fs=%s/stage4\n' "$build_dir" "$build_dir" >> "$GITHUB_ENV"
+        echo "Using persistent checkpoint: $build_dir"
 
     - name: Prepare Build Environment
       run: |
@@ -74,14 +88,8 @@ jobs:
         chmod +x /usr/local/bin/yq
 
     - name: Prepare stage3
-      id: stage3
       run: |
         mkdir -p "$build_dir"
-        if [ -f "$build_dir/world.started" ]; then
-          echo "resume=true" >> "$GITHUB_OUTPUT"
-          echo "Preserving existing build at $stage4_fs"
-          exit 0
-        fi
         if [ -f "$build_dir/stage3.ready" ]; then
           exit 0
         fi
@@ -105,6 +113,7 @@ jobs:
         if [ -f "/dl/${STAGE3##*/}" ]; then
           mkdir -p ${{ env.stage4_fs }}
           tar -xJpf "/dl/${STAGE3##*/}" -C ${{ env.stage4_fs }}
+          sync -f "$build_dir"
           touch "$build_dir/stage3.ready"
         else
             echo "The download of the stage3 file failed."
@@ -151,17 +160,22 @@ jobs:
 
     - name: Prepare chroot
       run: |
-        mount -t proc /proc ${{ env.stage4_fs }}/proc
-        mount --rbind /dev ${{ env.stage4_fs }}/dev
-        mount -t devpts devpts ${{ env.stage4_fs }}/dev/pts
-        mount -t tmpfs tmpfs ${{ env.stage4_fs }}/dev/shm
+        mountpoint -q "$stage4_fs/proc" || mount -t proc /proc "$stage4_fs/proc"
+        if ! mountpoint -q "$stage4_fs/dev"; then
+          mount --rbind /dev "$stage4_fs/dev"
+          mount --make-rslave "$stage4_fs/dev"
+        fi
+        mountpoint -q "$stage4_fs/dev/pts" || mount -t devpts devpts "$stage4_fs/dev/pts"
+        if [ "$(findmnt -n -o SOURCE -T "$stage4_fs/dev/shm" | tail -n 1)" != tmpfs ]; then
+          mount -t tmpfs tmpfs "$stage4_fs/dev/shm"
+        fi
         # /var/tmp and /var/cache are disk-backed (bind from /scratch) rather than
         # tmpfs: a RAM-capped tmpfs (~8G on a 16G builder) can't hold large package
         # build dirs (rust/llvm/gcc need >8G). Still separate mountpoints, so the
         # final archive excludes them after umount.
         mkdir -p "$build_dir/var-tmp" "$build_dir/var-cache"
-        mount -o bind "$build_dir/var-tmp" ${{ env.stage4_fs }}/var/tmp
-        mount -o bind "$build_dir/var-cache" ${{ env.stage4_fs }}/var/cache
+        mountpoint -q "$stage4_fs/var/tmp" || mount --bind "$build_dir/var-tmp" "$stage4_fs/var/tmp"
+        mountpoint -q "$stage4_fs/var/cache" || mount --bind "$build_dir/var-cache" "$stage4_fs/var/cache"
 
         rsync -vrtza files/common/ ${{ env.stage4_fs }}/
         rsync -vrtza files/${{ env.target }}/ ${{ env.stage4_fs }}/
@@ -186,14 +200,16 @@ jobs:
         fi
         mkdir -p ${{ env.stage4_fs }}/var/cache/binpkgs
         mkdir -p /dl/binpkgs/${{ env.target }}
-        mount -o bind /dl/binpkgs/${{ env.target }}/ ${{ env.stage4_fs }}/var/cache/binpkgs
+        mountpoint -q "$stage4_fs/var/cache/binpkgs" || mount --bind /dl/binpkgs/${{ env.target }}/ "$stage4_fs/var/cache/binpkgs"
 
     - name: chroot
-      if: steps.stage3.outputs.resume != 'true'
       run: |
+        if [ -f "$build_dir/bootstrap.done" ]; then exit 0; fi
         cp chroot/00.sh ${{ env.stage4_fs }}/00.sh
         chroot ${{ env.stage4_fs }} /bin/bash /00.sh ${{ env.target }}
         chroot ${{ env.stage4_fs }} /usr/bin/eclean packages --unique-use
+        sync -f "$build_dir"
+        touch "$build_dir/bootstrap.done"
 
     - name: push back changes
       env:
@@ -208,10 +224,12 @@ jobs:
         fi
 
     - name: build kernel
-      if: steps.stage3.outputs.resume != 'true'
       run: |
+        if [ -f "$build_dir/kernel.done" ]; then exit 0; fi
         cp chroot/01_kernel.sh ${{ env.stage4_fs }}/01_kernel.sh
         chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.target }}
+        sync -f "$build_dir"
+        touch "$build_dir/kernel.done"
 
     - name: push kernel archive to s3
       env:
@@ -221,10 +239,12 @@ jobs:
         aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} ${{ env.stage4_fs }}/kernel-*.tgz s3://${{ env.S3_BUCKET }}/stage4/${target}/
 
     - name: quirks
-      if: steps.stage3.outputs.resume != 'true'
       run: |
+        if [ -f "$build_dir/quirks.done" ]; then exit 0; fi
         cp chroot/02_quirks.sh ${{ env.stage4_fs }}/02_quirks.sh
         chroot ${{ env.stage4_fs }} /bin/bash /02_quirks.sh ${{ env.target }}
+        sync -f "$build_dir"
+        touch "$build_dir/quirks.done"
 
     - name: rebuild world
       run: |
@@ -250,11 +270,14 @@ jobs:
         sed -i "s/^MAKEOPTS=.*/MAKEOPTS=\"-j${JOBS} -l${CORES}\"/" ${{ env.stage4_fs }}/etc/portage/make.conf
         cp chroot/03_rebuild_world.sh ${{ env.stage4_fs }}/03_rebuild_world.sh
         resume=()
-        if [ -f "$build_dir/world.started" ] && python3 -c 'import json,sys; sys.exit(not json.load(open(sys.argv[1])).get("resume", {}).get("mergelist"))' "$stage4_fs/var/cache/edb/mtimedb"; then
+        # Selection already validated the saved merge list. Never fall back to
+        # an empty-tree rebuild when an interrupted checkpoint is damaged.
+        if [ -f "$build_dir/world.started" ]; then
           resume=(--resume)
         fi
         touch "$build_dir/world.started"
         chroot ${{ env.stage4_fs }} /bin/bash /03_rebuild_world.sh ${{ env.target }} "${resume[@]}"
+        sync -f "$build_dir"
         touch "$build_dir/world.done"
 
     - name: push back changes
@@ -326,14 +349,15 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-      if: always()
+      if: ${{ always() && env.stage4_fs != '' }}
       run: |
-
+        [ -n "${stage4_fs:-}" ] || exit 0
         # Base directory for search
         search_dir="${{ env.stage4_fs }}/var/tmp/portage"
 
         # Find files and process them
-        find "$search_dir" -type f -name "*build.log" | while read -r file; do
+        if [ -d "$search_dir" ]; then
+          find "$search_dir" -type f -name "*build.log" | while read -r file; do
             # Extract category and package from path
             category=$(echo "$file" | awk -F'/' '{print $(NF-3)}')
             package=$(echo "$file" | awk -F'/' '{print $(NF-2)}')
@@ -352,7 +376,8 @@ jobs:
 
             # Upload to S3
             aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$new_file_path" "s3://${{ env.S3_BUCKET }}/stage4/${target}/$new_file_name"
-        done
+          done
+        fi
 
 
         sync
@@ -375,3 +400,4 @@ jobs:
         cat "$build_dir/${target}-stage4.tgz.md5"
         aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${target}-stage4.tgz" s3://${{ env.S3_BUCKET }}/stage4/${target}/${target}-stage4.tgz
         aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${target}-stage4.tgz.md5" s3://${{ env.S3_BUCKET }}/stage4/${target}/${target}-stage4.tgz.md5
+        touch "$build_dir/published.done"
