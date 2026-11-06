@@ -9,6 +9,8 @@ CPU_FLAGS_X86="{{ cpu_flags_x86 }}"
 PORTDIR="/var/db/repos/gentoo"
 DISTDIR="/var/cache/distfiles"
 PKGDIR="/var/cache/binpkgs"
+# Keep open logs outside build directories that Portage removes on NFS.
+PORTAGE_LOGDIR="/var/log/portage"
 
 FEATURES="buildpkg getbinpkg parallel-fetch parallel-install"
 
