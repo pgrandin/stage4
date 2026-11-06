@@ -45,5 +45,32 @@ The repository includes a GitHub Actions workflow that automatically builds Stag
 - Stores binary packages in S3
 - Creates new Stage4 tarballs for quick and easy paving of systems
 
+# Build checkpoints
+
+Each target has an active checkpoint at `/scratch/builds/.checkpoints/<target>/active`
+on shared NFS storage, outside the runner's disposable filesystem. Scheduled
+builds, new commits, and retries select the unfinished checkpoint even when the
+GitHub run ID or runner changes. Builds for a target run one at a time.
+
+The checkpoint retains the installed filesystem, package database, binary cache,
+Portage's saved merge list, and completed stage markers. Bootstrap, kernel, and
+quirks stages are skipped after success; an interrupted world build uses
+`emerge --resume`. An interrupted package may need to restart, while completed
+packages remain installed. Missing or damaged resume data fails visibly instead
+of silently starting another empty-tree rebuild.
+
+The checkpoint remains active until validation and image/checksum uploads succeed.
+The following run then starts a fresh image. Build configuration changes also
+require an explicit fresh build; workflow and script fixes can resume existing
+state. To intentionally start over while retaining the old checkpoint:
+
+```
+gh workflow run main.yml --repo pgrandin/stage4 -f fresh=true
+```
+
+`build_checkpoint.py --adopt <existing-build-directory>` can register a legacy
+build that has already reached the world stage (also pass its target and run ID).
+Checkpoint tests run with `python3 -m unittest discover -s tests`.
+
 # License
 This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
