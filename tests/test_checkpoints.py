@@ -47,6 +47,9 @@ class CheckpointTests(unittest.TestCase):
 
     def test_interruption_before_world_preserves_completed_stage(self):
         first = self.select()
+        (first / "stage4/bin").mkdir(parents=True)
+        (first / "stage4/bin/bash").touch()
+        (first / "stage3.ready").touch()
         (first / "bootstrap.done").touch()
         resumed = self.select("200")
         self.assertEqual(first, resumed)
@@ -104,6 +107,10 @@ class CheckpointTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stage markers"):
             self.select("200")
         (first / "kernel.done").touch()
+        (first / "stage3.ready").unlink()
+        with self.assertRaisesRegex(ValueError, "Missing stage3 checkpoint"):
+            self.select("200")
+        (first / "stage3.ready").touch()
         (first / "stage4/bin/bash").unlink()
         with self.assertRaisesRegex(ValueError, "filesystem is missing"):
             self.select("200")

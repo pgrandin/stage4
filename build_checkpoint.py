@@ -60,6 +60,9 @@ def select_checkpoint(storage, target, run_id, signature, revision, fresh=False,
             raise ValueError(f"Missing checkpoint metadata in {build}; refusing to overwrite saved state")
         build.mkdir(parents=True, exist_ok=True)
 
+    advanced = (build / "world.started").exists() or any((build / f"{p}.done").exists() for p in PHASES)
+    if advanced and not (build / "stage3.ready").exists():
+        raise ValueError("Missing stage3 checkpoint; refusing to extract over an existing build")
     if (build / "stage3.ready").exists() and not (build / "stage4/bin/bash").is_file():
         raise ValueError(f"Checkpoint filesystem is missing in {build}")
     check_world_resume(build)
