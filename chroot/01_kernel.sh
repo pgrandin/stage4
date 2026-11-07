@@ -31,7 +31,7 @@ echo "# disable -Werror so benign upstream warnings don't fail the build" >>/${t
 echo "CONFIG_WERROR=n" >>/${target}_defconfig
 
 echo "=sys-kernel/gentoo-sources-${kversion} ~amd64" >/etc/portage/package.accept_keywords/gentoo-sources
-FEATURES="-getbinpkg" emerge -j$(nproc) -q =gentoo-sources-${kversion} sys-kernel/linux-firmware
+emerge -j$(nproc) -q =gentoo-sources-${kversion} sys-kernel/linux-firmware
 cd /usr/src && ln -sf "$(ls -d linux-*-gentoo* 2>/dev/null | sort -V | tail -1)" linux
 
 cat /usr/src/${kpath}/arch/x86/configs/x86_64_defconfig /${target}_defconfig > /usr/src/${kpath}/arch/x86/configs/${target}_defconfig
