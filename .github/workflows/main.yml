@@ -68,7 +68,8 @@ jobs:
       group: stage4-${{ matrix.target }}
       cancel-in-progress: false
     env:
-      target: ${{ matrix.target }}
+      # libvpx Makefiles consume lowercase target; keep CI metadata separate.
+      STAGE4_TARGET: ${{ matrix.target }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -79,7 +80,7 @@ jobs:
       run: |
         args=()
         if [ "$FRESH" = true ]; then args+=(--fresh); fi
-        build_dir=$(python3 build_checkpoint.py "$target" "$GITHUB_RUN_ID" "${args[@]}")
+        build_dir=$(python3 build_checkpoint.py "$STAGE4_TARGET" "$GITHUB_RUN_ID" "${args[@]}")
         printf 'build_dir=%s\nstage4_fs=%s/stage4\n' "$build_dir" "$build_dir" >> "$GITHUB_ENV"
         echo "Using persistent checkpoint: $build_dir"
 
@@ -182,12 +183,12 @@ jobs:
         mountpoint -q "$stage4_fs/var/cache" || mount --bind "$build_dir/var-cache" "$stage4_fs/var/cache"
 
         rsync -vrtza files/common/ ${{ env.stage4_fs }}/
-        rsync -vrtza files/${{ env.target }}/ ${{ env.stage4_fs }}/
+        rsync -vrtza files/${{ env.STAGE4_TARGET }}/ ${{ env.stage4_fs }}/
         mkdir -p "$stage4_fs/var/log/portage"
 
         tree ${{ env.stage4_fs }}/etc/portage/
 
-        yq eval ".[\"${{ env.target }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
+        yq eval ".[\"${{ env.STAGE4_TARGET }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
         bash setup_packages.sh ${{ env.stage4_fs }}
 
@@ -196,21 +197,21 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        mkdir -p /dl/binpkgs/${{ env.target }}/
+        mkdir -p /dl/binpkgs/${{ env.STAGE4_TARGET }}/
         # Seed once; never overwrite packages retained from an interrupted build.
-        if [ ! -f /dl/.${target}-binpkgs-seeded ]; then
-          aws s3 sync --no-progress --endpoint-url ${{ env.S3_ENDPOINT }} s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ /dl/binpkgs/${{ env.target }}/
-          touch /dl/.${target}-binpkgs-seeded
+        if [ ! -f /dl/.${STAGE4_TARGET}-binpkgs-seeded ]; then
+          aws s3 sync --no-progress --endpoint-url ${{ env.S3_ENDPOINT }} s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ /dl/binpkgs/${{ env.STAGE4_TARGET }}/
+          touch /dl/.${STAGE4_TARGET}-binpkgs-seeded
         fi
         mkdir -p ${{ env.stage4_fs }}/var/cache/binpkgs
-        mkdir -p /dl/binpkgs/${{ env.target }}
-        mountpoint -q "$stage4_fs/var/cache/binpkgs" || mount --bind /dl/binpkgs/${{ env.target }}/ "$stage4_fs/var/cache/binpkgs"
+        mkdir -p /dl/binpkgs/${{ env.STAGE4_TARGET }}
+        mountpoint -q "$stage4_fs/var/cache/binpkgs" || mount --bind /dl/binpkgs/${{ env.STAGE4_TARGET }}/ "$stage4_fs/var/cache/binpkgs"
 
     - name: chroot
       run: |
         if [ -f "$build_dir/bootstrap.done" ]; then exit 0; fi
         cp chroot/00.sh ${{ env.stage4_fs }}/00.sh
-        chroot ${{ env.stage4_fs }} /bin/bash /00.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /bin/bash /00.sh ${{ env.STAGE4_TARGET }}
         chroot ${{ env.stage4_fs }} /usr/bin/eclean packages --unique-use
         sync -f "$build_dir"
         touch "$build_dir/bootstrap.done"
@@ -221,7 +222,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
         # Upload additively; another runner may have additional valid packages.
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
             echo "S3 sync succeeded"
         else
             echo "S3 sync failed"
@@ -231,7 +232,7 @@ jobs:
       run: |
         if [ -f "$build_dir/kernel.done" ]; then exit 0; fi
         cp chroot/01_kernel.sh ${{ env.stage4_fs }}/01_kernel.sh
-        chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.STAGE4_TARGET }}
         sync -f "$build_dir"
         touch "$build_dir/kernel.done"
 
@@ -240,13 +241,13 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} ${{ env.stage4_fs }}/kernel-*.tgz s3://${{ env.S3_BUCKET }}/stage4/${target}/
+        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} ${{ env.stage4_fs }}/kernel-*.tgz s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/
 
     - name: quirks
       run: |
         if [ -f "$build_dir/quirks.done" ]; then exit 0; fi
         cp chroot/02_quirks.sh ${{ env.stage4_fs }}/02_quirks.sh
-        chroot ${{ env.stage4_fs }} /bin/bash /02_quirks.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /bin/bash /02_quirks.sh ${{ env.STAGE4_TARGET }}
         sync -f "$build_dir"
         touch "$build_dir/quirks.done"
 
@@ -280,7 +281,7 @@ jobs:
           resume=(--resume)
         fi
         touch "$build_dir/world.started"
-        chroot ${{ env.stage4_fs }} /bin/bash /03_rebuild_world.sh ${{ env.target }} "${resume[@]}"
+        chroot ${{ env.stage4_fs }} /bin/bash /03_rebuild_world.sh ${{ env.STAGE4_TARGET }} "${resume[@]}"
         sync -f "$build_dir"
         touch "$build_dir/world.done"
 
@@ -289,7 +290,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
             echo "S3 sync succeeded"
         else
             echo "S3 sync failed"
@@ -298,7 +299,7 @@ jobs:
     - name: configure stage4
       run: |
         cp chroot/04_configure.sh ${{ env.stage4_fs }}/04_configure.sh
-        chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.target }}
+        chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.STAGE4_TARGET }}
 
     - name: build Firefox
       run: |
@@ -315,7 +316,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
             echo "S3 sync succeeded"
         else
             echo "S3 sync failed"
@@ -333,14 +334,14 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
         echo "Build did not complete cleanly — saving binpkgs built so far (additive, no prune)"
-        aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.target }}/ s3://${{ env.S3_BUCKET }}/stage4/${target}/binpkgs/ | grep -v '^Completed' || echo "salvage sync failed"
+        aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | grep -v '^Completed' || echo "salvage sync failed"
 
     - name: push back portage conf
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete ${{ env.stage4_fs }}/etc/portage/ s3://${{ env.S3_BUCKET }}/stage4/${target}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
+        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete ${{ env.stage4_fs }}/etc/portage/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
             echo "S3 sync succeeded"
         else
             echo "S3 sync failed"
@@ -376,7 +377,7 @@ jobs:
             mv "$file" "$new_file_path"
 
             # Upload to S3
-            aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$new_file_path" "s3://${{ env.S3_BUCKET }}/stage4/${target}/$new_file_name"
+            aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$new_file_path" "s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/$new_file_name"
           done
         fi
 
@@ -396,9 +397,9 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
       run: |
-        tar cfz "$build_dir/${target}-stage4.tgz" -C ${{ env.stage4_fs }} .
-        (cd "$build_dir" && md5sum "${target}-stage4.tgz" > "${target}-stage4.tgz.md5")
-        cat "$build_dir/${target}-stage4.tgz.md5"
-        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${target}-stage4.tgz" s3://${{ env.S3_BUCKET }}/stage4/${target}/${target}-stage4.tgz
-        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${target}-stage4.tgz.md5" s3://${{ env.S3_BUCKET }}/stage4/${target}/${target}-stage4.tgz.md5
+        tar cfz "$build_dir/${STAGE4_TARGET}-stage4.tgz" -C ${{ env.stage4_fs }} .
+        (cd "$build_dir" && md5sum "${STAGE4_TARGET}-stage4.tgz" > "${STAGE4_TARGET}-stage4.tgz.md5")
+        cat "$build_dir/${STAGE4_TARGET}-stage4.tgz.md5"
+        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${STAGE4_TARGET}-stage4.tgz" s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/${STAGE4_TARGET}-stage4.tgz
+        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${STAGE4_TARGET}-stage4.tgz.md5" s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/${STAGE4_TARGET}-stage4.tgz.md5
         touch "$build_dir/published.done"
