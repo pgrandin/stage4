@@ -23,7 +23,6 @@ dev-vcs/git
 media-fonts/fontawesome
 media-fonts/noto
 media-fonts/noto-emoji
-media-gfx/blender
 media-gfx/geeqie
 media-gfx/gimp
 media-gfx/graphviz
@@ -52,12 +51,14 @@ net-wireless/bluez
 net-wireless/wireless-tools
 net-wireless/wpa_supplicant
 sys-apps/dmidecode
+sys-apps/flatpak
 sys-apps/fwupd
 sys-apps/hwinfo
 sys-apps/mlocate
 sys-apps/pciutils
 sys-apps/smartmontools
 sys-apps/usbutils
+sys-apps/xdg-desktop-portal-gtk
 sys-block/fio
 sys-block/gparted
 sys-boot/efibootmgr

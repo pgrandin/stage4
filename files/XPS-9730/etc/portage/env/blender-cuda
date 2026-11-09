@@ -1,3 +1,0 @@
-# RTX 4080 Laptop GPU (compute capability 8.9). Keep CUDA enabled without
-# building unrelated GPU kernels; CUDA 13.4 fails on Blender 4.5's sm_120.
-CUDAARCHS="89"

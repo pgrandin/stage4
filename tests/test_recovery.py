@@ -24,7 +24,7 @@ class RecoveryTests(unittest.TestCase):
             self.assertEqual(len(calls), 2)
             self.assertTrue(all(c.startswith("--resume ") and "@world" not in c for c in calls))
 
-    def test_validation_rejects_missing_package_browser_and_kernel(self):
+    def test_validation_rejects_missing_package_excluded_packages_and_kernel(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as tmp:
             root = Path(tmp)
             (root / "var/lib/portage").mkdir(parents=True)
@@ -50,8 +50,12 @@ class RecoveryTests(unittest.TestCase):
             installed.write_text("net-dns/bind\n")
             self.assertIn("gui-apps/sddm", validate().stderr)
             self.assertNotEqual(validate().returncode, 0)
-            installed.write_text("net-dns/bind\ngui-apps/sddm\nwww-client/firefox\n")
-            self.assertNotEqual(validate().returncode, 0)
+            for excluded in ("www-client/firefox", "www-client/chromium", "media-gfx/blender"):
+                with self.subTest(excluded=excluded):
+                    installed.write_text(f"net-dns/bind\ngui-apps/sddm\n{excluded}\n")
+                    result = validate()
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(excluded, result.stderr)
             installed.write_text("net-dns/bind\ngui-apps/sddm\n")
             kernel.unlink()
             self.assertNotEqual(validate().returncode, 0)

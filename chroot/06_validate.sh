@@ -12,9 +12,9 @@ while read -r atom; do
 done < "$root/var/lib/portage/world"
 [[ "$missing" == 0 ]] || exit 1
 
-for browser in www-client/firefox www-client/chromium; do
-    if portageq has_version "$root" "$browser"; then
-        echo "Unexpected browser in browser-free build: $browser" >&2
+for excluded in www-client/firefox www-client/chromium media-gfx/blender; do
+    if portageq has_version "$root" "$excluded"; then
+        echo "Unexpected excluded native package: $excluded" >&2
         exit 1
     fi
 done
@@ -27,4 +27,4 @@ for kernel in "${kernels[@]}"; do
     grep -q '/boot/bzImage$' "$root/var/tmp/kernel-contents.txt"
     grep -q '^lib/modules/' "$root/var/tmp/kernel-contents.txt"
 done
-echo "Validated world packages, browser exclusions, and kernel archive"
+echo "Validated world packages, native package exclusions, and kernel archive"

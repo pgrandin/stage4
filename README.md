@@ -72,5 +72,19 @@ gh workflow run main.yml --repo pgrandin/stage4 -f fresh=true
 build that has already reached the world stage (also pass its target and run ID).
 Checkpoint tests run with `python3 -m unittest discover -s tests`.
 
+# Blender via Flatpak
+
+The XPS-9730 image excludes native Firefox, Chromium, and Blender packages.
+Flatpak and the GTK desktop portal are included for the i3 desktop. After
+booting the image, install Blender for your desktop user:
+
+```sh
+flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install --user flathub org.blender.Blender
+flatpak run org.blender.Blender
+```
+
+Blender's Flatpak listing: https://flathub.org/en/apps/org.blender.Blender
+
 # License
 This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
