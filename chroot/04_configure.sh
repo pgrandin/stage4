@@ -21,7 +21,8 @@ popd
 
 sed -i -e "s/localhost/${target}/" /etc/conf.d/hostname
 
-[[ -f /etc/conf.d/display-manager ]] && sed -i -e 's/xdm/lightdm/g' /etc/conf.d/display-manager 
+# Install the target's display-manager selection where OpenRC reads it.
+[[ -f /etc/display-manager ]] && cp /etc/display-manager /etc/conf.d/display-manager
 
 if grep -q "app-containers/docker$" /var/lib/portage/world; then
   rc-update add docker default
