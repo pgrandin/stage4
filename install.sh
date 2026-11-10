@@ -65,7 +65,9 @@ mount -t proc proc "$mnt/proc"
 mount --rbind /sys "$mnt/sys" && mount --make-rslave "$mnt/sys"
 mount --rbind /dev "$mnt/dev" && mount --make-rslave "$mnt/dev"
 mkdir -p "$mnt/boot/efi/EFI"
-sed "s#/dev/nvme0n1#$disk#" "$mnt/root/setup_efi.sh" | chroot "$mnt" /bin/bash -e
+# The live ISO's PATH has no sbin dirs (merged-bin); the image's efibootmgr is in /usr/sbin.
+sed "s#/dev/nvme0n1#$disk#" "$mnt/root/setup_efi.sh" |
+    PATH=/usr/sbin:/usr/bin:/sbin:/bin chroot "$mnt" /bin/bash -e
 umount -R "$mnt"
 
 sgdisk --partition-guid="2:$partuuid" "$disk"
