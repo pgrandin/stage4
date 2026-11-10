@@ -1,0 +1,79 @@
+#!/usr/bin/expect -f
+# Drives the install test over the VM's serial console (see install-test.yml):
+# boot the live ISO as a USB key, run install.sh onto a blank NVMe disk, power
+# off, then boot that disk alone through the firmware entry install.sh created.
+log_user 1
+
+proc die {msg} { puts "\n::error::$msg"; exit 1 }
+
+# Run a shell command in the VM and fail unless it exits 0.
+proc run {cmd secs} {
+    set timeout $secs
+    send "$cmd; echo @@RC \$?\r"
+    expect {
+        -re {@@RC (\d+)} { if {$expect_out(1,string) ne "0"} { die "failed: $cmd" } }
+        timeout { die "timed out: $cmd" }
+        eof { die "VM exited during: $cmd" }
+    }
+}
+
+proc wait_poweroff {} {
+    set timeout 180
+    expect { eof {} timeout { die "VM did not power off" } }
+}
+
+set qemu [list qemu-system-x86_64 -machine q35 -accel kvm -cpu host -smp 4 -m 4096 \
+    -display none -vga std -serial mon:stdio -nic user,model=e1000e \
+    -drive if=pflash,format=raw,readonly=on,file=$env(OVMF_CODE) \
+    -drive if=pflash,format=raw,file=$env(OVMF_VARS) \
+    -drive if=none,id=nvm,format=qcow2,file=$env(DISK),file.locking=off,cache=unsafe \
+    -device nvme,serial=stage4,drive=nvm]
+
+# Phase 1: the live USB key. Its kernel is booted directly only to add
+# console=ttyS0; the live root still comes off the USB device.
+spawn {*}$qemu -kernel $env(LIVE_KERNEL) -initrd $env(LIVE_INITRD) -append $env(LIVE_APPEND) \
+    -device qemu-xhci -drive if=none,id=usb,format=raw,readonly=on,file=$env(ISO) \
+    -device usb-storage,drive=usb
+set timeout 600
+expect {
+    -re {livecd[^\r\n]*#} {}
+    timeout { die "live USB did not reach a root shell" }
+    eof { die "VM exited while booting the live USB" }
+}
+run "dhcpcd -w -q || ip route | grep -q default" 120
+run "curl -fsSLO https://raw.githubusercontent.com/pgrandin/stage4/$env(SHA)/install.sh" 120
+run "bash install.sh --yes /dev/nvme0n1 $env(TARGET)" 5400
+# Test-only: a serial login so phase 2 can be inspected; the kernel console
+# itself stays on the screen as on real hardware.
+run "mount /dev/nvme0n1p2 /mnt/gentoo && echo 's0:12345:respawn:/sbin/agetty -L 115200 ttyS0 vt100' >> /mnt/gentoo/etc/inittab && umount /mnt/gentoo" 60
+send "poweroff\r"
+wait_poweroff
+
+# Phase 2: no USB key, no -kernel. The firmware must boot the installed disk.
+spawn {*}$qemu
+set timeout 600
+expect {
+    -re { login: } {}
+    timeout { die "installed system did not reach a login prompt" }
+    eof { die "VM exited while booting the installed system" }
+}
+sleep 30
+send "\001c"; expect "(qemu)"
+send "screendump $env(SHOT) -f png\r"; expect "(qemu)"
+send "\001c\r"
+
+expect -re { login: }
+send "root\r"
+expect "Password:"
+send "scrambled\r"
+set timeout 60
+expect {
+    -re { ~ #} {}
+    "Login incorrect" { die "root login failed" }
+    timeout { die "no shell after login" }
+}
+run "uname -r; efibootmgr; findmnt / /boot/efi; rc-status -a; firefox --version; true" 120
+run "test \"\$(findmnt -no SOURCE /)\" = /dev/nvme0n1p2 && test \"\$(rc-status -r)\" = default && command -v firefox" 60
+send "poweroff\r"
+wait_poweroff
+puts "\n@@ install test passed"
