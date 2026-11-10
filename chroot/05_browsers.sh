@@ -1,8 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
-stage4_fs=$1
-
-set -x
+stage4_fs=${1:?stage4 filesystem is required}
 
 if [ ! -f "$stage4_fs/var/lib/portage/world" ]; then
     echo "The world file does not exist at $stage4_fs/var/lib/portage/world."
@@ -10,12 +9,15 @@ if [ ! -f "$stage4_fs/var/lib/portage/world" ]; then
 fi
 
 if yq '.features[] | select(. == "X")' "$stage4_fs/config.yml" | grep -q X; then
-    echo "X is present in features, building browsers"
+    echo "X is present in features, building Firefox"
     echo "setting up firefox package from packages/www-client/firefox to $stage4_fs/etc/portage/"
-    rsync -vrtza packages/www-client/firefox/ $stage4_fs/etc/portage/
+    rsync -vrtza packages/www-client/firefox/ "$stage4_fs/etc/portage/"
+    # Both stage4 runners have at least 13 GiB RAM. Keep Firefox's compiler
+    # processes bounded even when the completed world stage is reused.
+    sed -i 's/^MAKEOPTS=.*/MAKEOPTS="-j4 -l4"/' "$stage4_fs/etc/portage/make.conf"
     echo "Building firefox from chroot"
-    chroot "${stage4_fs}" env -i HOSTNAME=localhost HOME="$HOME" TERM="$TERM" PATH="$PATH" FEATURES="$FEATURES" emerge -q1 media-libs/libvpx
-    chroot ${stage4_fs} emerge -q www-client/firefox
+    chroot "$stage4_fs" emerge --update --newuse --oneshot --usepkg --getbinpkg media-libs/libvpx
+    chroot "$stage4_fs" emerge --update --usepkg --getbinpkg --jobs=1 --load-average=4 www-client/firefox
 
     # chromium intentionally NOT built in CI: its ~12-15h from-source compile
     # can't reliably complete on the available runners (the skylake-compatible

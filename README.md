@@ -74,7 +74,7 @@ Checkpoint tests run with `python3 -m unittest discover -s tests`.
 
 # Blender via Flatpak
 
-The XPS-9730 image excludes native Firefox, Chromium, and Blender packages.
+The XPS-9730 image includes Firefox and excludes native Chromium and Blender packages.
 Flatpak and the GTK desktop portal are included for the i3 desktop. After
 booting the image, install Blender for your desktop user:
 

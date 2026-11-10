@@ -12,7 +12,12 @@ while read -r atom; do
 done < "$root/var/lib/portage/world"
 [[ "$missing" == 0 ]] || exit 1
 
-for excluded in www-client/firefox www-client/chromium media-gfx/blender; do
+if ! portageq has_version "$root" www-client/firefox; then
+    echo "Required browser is missing: www-client/firefox" >&2
+    exit 1
+fi
+
+for excluded in www-client/chromium media-gfx/blender; do
     if portageq has_version "$root" "$excluded"; then
         echo "Unexpected excluded native package: $excluded" >&2
         exit 1
