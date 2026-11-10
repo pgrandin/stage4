@@ -40,8 +40,16 @@ mount "${part}2" "$mnt"
 mkdir -p "$mnt/boot/efi"
 mount "${part}1" "$mnt/boot/efi"
 
-echo "Downloading and extracting $url"
-curl -fsSL "$url" | tar xzpf - --xattrs-include='*.*' --numeric-owner -C "$mnt"
+# Download to the target disk so a dropped connection resumes instead of restarting.
+tgz=$mnt/stage4.tgz
+for try in {1..20}; do
+    curl -fL --progress-bar -C - -o "$tgz" "$url" && break
+    (( try < 20 )) || die "download failed"
+    echo "download interrupted, resuming ($try)"; sleep 5
+done
+echo "$(curl -fsSL "$url.md5" | cut -d' ' -f1)  $tgz" | md5sum -c -
+tar xzpf "$tgz" --xattrs-include='*.*' --numeric-owner -C "$mnt"
+rm "$tgz"
 
 partuuid=$(grep -o 'root=PARTUUID=[0-9a-fA-F-]*' "$mnt/usr/src/linux/.config" | cut -d= -f3)
 [[ -n $partuuid ]] || die "kernel has no built-in root=PARTUUID"
