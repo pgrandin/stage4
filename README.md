@@ -88,11 +88,6 @@ The disk gets a 1 GiB ESP and an ext4 root. The kernel boots from the ESP as an
 EFI stub (no GRUB, no initramfs) and finds root through the `root=PARTUUID=`
 built into its config, so `install.sh` gives the root partition that PARTUUID.
 
-The *Install test* workflow repeats these steps in a UEFI QEMU VM after each
-successful master build: the ISO is attached as a USB stick, `install.sh` runs
-onto a blank NVMe disk, and the VM then boots from that disk alone.
-The VM needs KVM, which only the dgaming runner has today.
-
 # Blender via Flatpak
 
 The XPS-9730 image includes Firefox and excludes native Chromium and Blender packages.
