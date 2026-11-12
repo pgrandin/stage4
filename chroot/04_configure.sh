@@ -21,8 +21,14 @@ popd
 
 sed -i -e "s/localhost/${target}/" /etc/conf.d/hostname
 
-# Install the target's display-manager selection where OpenRC reads it.
-[[ -f /etc/display-manager ]] && cp /etc/display-manager /etc/conf.d/display-manager
+# Install the target's display-manager selection where OpenRC reads it, and
+# start it at boot along with the dbus and elogind sessions sddm relies on.
+if [[ -f /etc/display-manager ]]; then
+  cp /etc/display-manager /etc/conf.d/display-manager
+  rc-update add elogind boot
+  rc-update add dbus default
+  rc-update add display-manager default
+fi
 
 if grep -q "app-containers/docker$" /var/lib/portage/world; then
   rc-update add docker default

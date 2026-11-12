@@ -72,6 +72,22 @@ gh workflow run main.yml --repo pgrandin/stage4 -f fresh=true
 build that has already reached the world stage (also pass its target and run ID).
 Checkpoint tests run with `python3 -m unittest discover -s tests`.
 
+# Installing on a fresh machine
+
+1. Write the [Gentoo minimal install ISO](https://distfiles.gentoo.org/releases/amd64/autobuilds/current-install-amd64-minimal/)
+   to a USB key (`dd if=install-amd64-minimal-*.iso of=/dev/sdX bs=4M`) and boot it in UEFI mode.
+2. Bring the network up: `dhcpcd`, or `net-setup` for Wi-Fi.
+3. Install. This erases the whole disk:
+   ```sh
+   curl -fsSLO https://raw.githubusercontent.com/pgrandin/stage4/master/install.sh
+   bash install.sh /dev/nvme0n1          # optional 2nd argument: target, default XPS-9730
+   ```
+4. Remove the USB key and reboot. Root's password is `scrambled`; change it.
+
+The disk gets a 1 GiB ESP and an ext4 root. The kernel boots from the ESP as an
+EFI stub (no GRUB, no initramfs) and finds root through the `root=PARTUUID=`
+built into its config, so `install.sh` gives the root partition that PARTUUID.
+
 # Blender via Flatpak
 
 The XPS-9730 image includes Firefox and excludes native Chromium and Blender packages.
