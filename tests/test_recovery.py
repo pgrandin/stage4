@@ -11,7 +11,7 @@ REPO = Path(__file__).resolve().parents[1]
 
 
 class RecoveryTests(unittest.TestCase):
-    def test_firefox_build_propagates_dependency_and_browser_failures(self):
+    def test_browser_install_propagates_dependency_browser_and_flatpak_failures(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as tmp:
             root = Path(tmp)
             (root / "var/lib/portage").mkdir(parents=True)
@@ -27,13 +27,16 @@ class RecoveryTests(unittest.TestCase):
                 command.write_text("#!/bin/bash\n" + body + "\n")
                 command.chmod(0o755)
             calls = root / "calls"
-            for failure, count in (("media-libs/libvpx", 1), ("www-client/firefox", 2), ("none", 2)):
+            for failure, count in (("media-libs/libvpx", 1), ("www-client/firefox", 2),
+                                   ("flatpak remote-add", 3), ("flatpak install", 4), ("none", 4)):
                 with self.subTest(failure=failure):
                     calls.write_text("")
                     env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}", CALLS=str(calls), FAIL_PACKAGE=failure)
                     result = subprocess.run(["bash", str(REPO / "chroot/05_browsers.sh"), str(root)], env=env, capture_output=True, text=True)
                     self.assertEqual(result.returncode == 0, failure == "none")
                     self.assertEqual(len(calls.read_text().splitlines()), count)
+                    if failure == "none":
+                        self.assertIn("--or-update flathub org.chromium.Chromium", calls.read_text())
 
     def test_resume_retries_saved_list_without_restarting_world(self):
         with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as tmp:
@@ -57,6 +60,13 @@ class RecoveryTests(unittest.TestCase):
             query = root / "portageq"
             query.write_text('#!/bin/bash\ngrep -qxF "$3" "$2/installed"\n')
             query.chmod(0o755)
+            flatpak = root / "flatpak"
+            flatpak.write_text('#!/bin/bash\ntest -f "$FLATPAK_SYSTEM_DIR/chromium-installed"\n')
+            flatpak.chmod(0o755)
+            flatpak_dir = root / "var/lib/flatpak"
+            flatpak_dir.mkdir()
+            chromium = flatpak_dir / "chromium-installed"
+            chromium.touch()
             installed = root / "installed"
             complete = "net-dns/bind\ngui-apps/sddm\nwww-client/firefox\n"
             installed.write_text(complete)
@@ -86,5 +96,10 @@ class RecoveryTests(unittest.TestCase):
                     self.assertNotEqual(result.returncode, 0)
                     self.assertIn(excluded, result.stderr)
             installed.write_text(complete)
+            chromium.unlink()
+            result = validate()
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Required Chromium Flatpak is missing", result.stderr)
+            chromium.touch()
             kernel.unlink()
             self.assertNotEqual(validate().returncode, 0)
