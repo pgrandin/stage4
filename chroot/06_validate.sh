@@ -17,6 +17,11 @@ if ! portageq has_version "$root" www-client/firefox; then
     exit 1
 fi
 
+if ! FLATPAK_SYSTEM_DIR="${root%/}/var/lib/flatpak" flatpak info --system org.chromium.Chromium >/dev/null 2>&1; then
+    echo "Required Chromium Flatpak is missing: org.chromium.Chromium" >&2
+    exit 1
+fi
+
 for excluded in www-client/chromium media-gfx/blender; do
     if portageq has_version "$root" "$excluded"; then
         echo "Unexpected excluded native package: $excluded" >&2

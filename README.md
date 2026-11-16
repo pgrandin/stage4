@@ -88,11 +88,23 @@ The disk gets a 1 GiB ESP and an ext4 root. The kernel boots from the ESP as an
 EFI stub (no GRUB, no initramfs) and finds root through the `root=PARTUUID=`
 built into its config, so `install.sh` gives the root partition that PARTUUID.
 
-# Blender via Flatpak
+# Chromium and Blender via Flatpak
 
-The XPS-9730 image includes Firefox and excludes native Chromium and Blender packages.
-Flatpak and the GTK desktop portal are included for the i3 desktop. After
-booting the image, install Blender for your desktop user:
+The XPS-9730 image includes native Firefox and the system-wide Chromium Flatpak
+from Flathub (`org.chromium.Chromium`). Each image build installs or updates
+Chromium, and validation requires it. Chromium updates on an installed system
+come from Flathub:
+
+```sh
+flatpak run org.chromium.Chromium
+sudo flatpak update --system org.chromium.Chromium
+```
+
+Chromium's Flatpak listing: https://flathub.org/apps/org.chromium.Chromium
+
+Native Chromium and Blender packages are excluded. Flatpak and the GTK desktop
+portal are included for the i3 desktop. After booting the image, install Blender
+for your desktop user:
 
 ```sh
 flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo

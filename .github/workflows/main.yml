@@ -301,7 +301,7 @@ jobs:
         cp chroot/04_configure.sh ${{ env.stage4_fs }}/04_configure.sh
         chroot ${{ env.stage4_fs }} /bin/bash /04_configure.sh ${{ env.STAGE4_TARGET }}
 
-    - name: build Firefox
+    - name: install Firefox and Chromium
       run: |
         cp chroot/05_browsers.sh ${{ env.stage4_fs }}/05_browsers.sh
         bash ${{ env.stage4_fs }}/05_browsers.sh ${{ env.stage4_fs }}
