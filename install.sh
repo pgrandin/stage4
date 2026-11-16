@@ -70,6 +70,8 @@ sed "s#/dev/nvme0n1#$disk#" "$mnt/root/setup_efi.sh" |
     PATH=/usr/sbin:/usr/bin:/sbin:/bin chroot "$mnt" /bin/bash -e
 password_note="root's password is 'scrambled', change it."
 if [[ -f $mnt/etc/stage4-public ]]; then
+    # D-Bus on OpenRC rejects an empty machine-id; initialize the cleared template.
+    chroot "$mnt" dbus-uuidgen > "$mnt/etc/machine-id"
     echo "Set the root password for this installation (the public image's root account is locked)."
     chroot "$mnt" passwd root
     password_note="The root password was set during installation."
