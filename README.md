@@ -104,3 +104,39 @@ Blender's Flatpak listing: https://flathub.org/en/apps/org.blender.Blender
 
 # License
 This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
+
+# Public distribution
+
+SourceForge hosts the public edition and its individual binary packages:
+https://sourceforge.net/projects/stage4-gentoo/files/
+
+The public edition excludes Slack, Spotify and the NVIDIA CUDA toolkit. Its
+Portage configuration disables CUDA consumers and masks the optional applications.
+After installation, explicitly add an application with
+`install-stage4-extras slack`, `install-stage4-extras spotify`, or
+`install-stage4-extras cuda`. These commands fetch from upstream, prompt before
+installing, and do not produce binary packages for redistribution. Installing the
+CUDA toolkit does not enable CUDA globally for other packages.
+
+To prepare a release, copy a completed stage4 filesystem to a separate working
+directory, mount its `/proc`, `/dev`, `/var/cache` and `/var/tmp` as for the regular
+build, then run `sudo bash make-public.sh /path/to/public-copy`. This rebuilds
+changed dependencies, removes unused packages, and audits every installed
+package before archiving. A manifest is saved as
+`/usr/share/stage4/installed-packages.json` inside the image. The audit uses
+Gentoo's `@FREE` licenses without personal license overrides, rejects `bindist`
+packages, and permits redistributable firmware for hardware support. Firmware
+retains its individual licenses; this is not a firmware-free distribution.
+
+Use the same audit policy to stage the public binhost, inside the Gentoo build
+environment: `python3 public_edition.py binhost /path/to/binpkgs /path/to/public-binpkgs`.
+Files are checksum-verified, excluded packages are recorded, and the `Packages`
+index contains only the staged packages. Upload package files first; publish the
+index after SourceForge has processed the files. Preserve older package files
+while clients can still reference them from an earlier index.
+
+The public image locks root and clears machine identity. To install it, set
+`STAGE4_URL` to its direct tarball URL when running `install.sh`; the matching
+`.md5` must also be published. The installer prompts for a root password before
+unmounting the installation. The personal image remains the default when
+`STAGE4_URL` is unset.

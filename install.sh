@@ -15,7 +15,7 @@ yes=
 [[ ${1:-} == --yes ]] && { yes=1; shift; }
 disk=${1:?usage: install.sh [--yes] <disk> [target]}
 target=${2:-XPS-9730}
-url=https://s3.sd.kazer.org/public-artifacts/stage4/$target/$target-stage4.tgz
+url=${STAGE4_URL:-https://s3.sd.kazer.org/public-artifacts/stage4/$target/$target-stage4.tgz}
 mnt=/mnt/gentoo
 
 die() { echo "install.sh: $*" >&2; exit 1; }
@@ -68,7 +68,15 @@ mkdir -p "$mnt/boot/efi/EFI"
 # The live ISO's PATH has no sbin dirs (merged-bin); the image's efibootmgr is in /usr/sbin.
 sed "s#/dev/nvme0n1#$disk#" "$mnt/root/setup_efi.sh" |
     PATH=/usr/sbin:/usr/bin:/sbin:/bin chroot "$mnt" /bin/bash -e
+password_note="root's password is 'scrambled', change it."
+if [[ -f $mnt/etc/stage4-public ]]; then
+    # D-Bus on OpenRC rejects an empty machine-id; initialize the cleared template.
+    chroot "$mnt" dbus-uuidgen > "$mnt/etc/machine-id"
+    echo "Set the root password for this installation (the public image's root account is locked)."
+    chroot "$mnt" passwd root
+    password_note="The root password was set during installation."
+fi
 umount -R "$mnt"
 
 sgdisk --partition-guid="2:$partuuid" "$disk"
-echo "Installed $target on $disk. Remove the USB key and reboot; root's password is 'scrambled', change it."
+echo "Installed $target on $disk. Remove the USB key and reboot; $password_note"
