@@ -115,7 +115,9 @@ def binhost(source, destination, missing):
         target.parent.mkdir(parents=True, exist_ok=True)
         # Staging uses its own copy; personal cache maintenance cannot mutate a release.
         if not target.exists():
-            shutil.copy2(original, target)
+            partial = target.with_name(target.name + ".new")
+            shutil.copy2(original, partial)
+            partial.replace(target)
         else:
             with target.open("rb") as stream:
                 staged_digest = hashlib.file_digest(stream, "md5").hexdigest()
