@@ -68,11 +68,13 @@ mkdir -p "$mnt/boot/efi/EFI"
 # The live ISO's PATH has no sbin dirs (merged-bin); the image's efibootmgr is in /usr/sbin.
 sed "s#/dev/nvme0n1#$disk#" "$mnt/root/setup_efi.sh" |
     PATH=/usr/sbin:/usr/bin:/sbin:/bin chroot "$mnt" /bin/bash -e
+password_note="root's password is 'scrambled', change it."
 if [[ -f $mnt/etc/stage4-public ]]; then
     echo "Set the root password for this installation (the public image's root account is locked)."
     chroot "$mnt" passwd root
+    password_note="The root password was set during installation."
 fi
 umount -R "$mnt"
 
 sgdisk --partition-guid="2:$partuuid" "$disk"
-echo "Installed $target on $disk. Remove the USB key and reboot."
+echo "Installed $target on $disk. Remove the USB key and reboot; $password_note"
