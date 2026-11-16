@@ -8,7 +8,7 @@ case ${1:-} in
     cuda) atom=dev-util/nvidia-cuda-toolkit; license=NVIDIA-CUDA ;;
     *) echo "usage: install-stage4-extras <slack|spotify|cuda>" >&2; exit 1 ;;
 esac
-echo "Installing $atom under its $license license; this installation will no longer match the public image audit."
+echo "Installing $atom under its $license license."
 mask=/etc/portage/package.mask/stage4-public
 if [[ -f $mask ]]; then
     awk -v atom="$atom" '$0 != atom' "$mask" > "$mask.new"
