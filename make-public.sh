@@ -16,7 +16,7 @@ chroot "$root" python3 /usr/local/libexec/stage4-public-edition.py audit / > "$r
 
 # A public image must not inherit an enabled shared root password or host identity.
 chroot "$root" passwd -l root
-rm -f "$root"/etc/ssh/ssh_host_* "$root/etc/machine-id" "$root/var/lib/dbus/machine-id"
+rm -f "$root"/etc/ssh/ssh_host_* "$root/etc/machine-id" "$root/var/lib/dbus/machine-id" "$root/etc/bind/rndc.key"
 touch "$root/etc/machine-id"
 rm -f "$root/root/.bash_history"
 if ! grep -q '^# Public packages are served independently' "$root/etc/portage/make.conf"; then
