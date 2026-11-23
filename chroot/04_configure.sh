@@ -8,7 +8,9 @@ target=$1
 cp /usr/share/zoneinfo/America/Denver /etc/localtime
 echo "America/Denver" > /etc/timezone
 
-echo "root:scrambled" | chpasswd
+if [[ ! -f /etc/stage4-public ]]; then
+  echo "root:scrambled" | chpasswd
+fi
 
 netif=$(yq -r '.network_interface' /config.yml)
 
@@ -34,13 +36,15 @@ if grep -q "app-containers/docker$" /var/lib/portage/world; then
   rc-update add docker default
 fi
 
-[[ -f /etc/libvirt/libvirtd.conf ]] && cat <<EOF > /etc/libvirt/libvirtd.conf
+if [[ ! -f /etc/stage4-public && -f /etc/libvirt/libvirtd.conf ]]; then
+  cat <<EOF > /etc/libvirt/libvirtd.conf
 auth_unix_ro = "none"
 auth_unix_rw = "none"
 unix_sock_group = "libvirt"
 unix_sock_ro_perms = "0777"
 unix_sock_rw_perms = "0770"
 EOF
+fi
 
 id -u pierre >/dev/null 2>&1 || useradd pierre
 usermod -aG wheel,uucp,audio,video,usb,docker,kvm pierre

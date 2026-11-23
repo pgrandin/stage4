@@ -84,3 +84,32 @@ class PublicEditionTests(unittest.TestCase):
         index.write_text(index.read_text().replace("PATH: app-misc/jq-1.gpkg.tar", "PATH: ../escape"))
         with self.assertRaisesRegex(ValueError, "Unsafe package path"):
             binhost(source, dest, self.missing)
+
+    def test_sourceforge_index_reuses_published_files_and_never_overwrites_changed_bytes(self):
+        source, dest = self.root / "cache", self.root / "public"
+        file = source / "app-misc/jq/jq-1-1.gpkg.tar"
+        file.parent.mkdir(parents=True)
+        index = source / "Packages"
+
+        def write_cache(data):
+            file.write_bytes(data)
+            index.write_text(
+                "VERSION: 0\nPACKAGES: 1\nTIMESTAMP: 1\n\n"
+                f"CPV: app-misc/jq-1\nPATH: {file.relative_to(source)}\nLICENSE: MIT\n"
+                f"SIZE: {len(data)}\nMD5: {hashlib.md5(data).hexdigest()}\n"
+            )
+
+        write_cache(b"old")
+        previous = self.root / "previous-Packages"
+        previous.write_bytes(index.read_bytes())
+        binhost(source, dest, self.missing, previous)
+        self.assertIn(f"PATH: {file.relative_to(source)}\n", (dest / "Packages").read_text())
+        self.assertEqual((dest / "upload-files.txt").read_text(), "")
+
+        write_cache(b"new")
+        binhost(source, dest, self.missing, previous)
+        path = (dest / "upload-files.txt").read_text().strip()
+        self.assertEqual(path, f"objects/{hashlib.sha256(b'new').hexdigest()}/{file.name}")
+        self.assertIn(f"PATH: {path}\n", (dest / "Packages").read_text())
+        self.assertEqual((dest / path).read_bytes(), b"new")
+        self.assertFalse((dest / file.relative_to(source)).exists())

@@ -13,7 +13,7 @@ The main goals of this project are:
 # Features
 
 - Automated Build Pipeline: GitHub Actions workflow handles regular rebuilds
-- Binary Package Management: Integrated with S3 for efficient package storage and reuse
+- Binary Package Management: Shared runner cache backed by the public SourceForge binhost
 - Custom Kernel Configurations: Hardware-specific kernel configs for each of my machines
 - Flexible Configuration: Uses Jinja2 templating for make.conf generation
 - Modular Design: Easy to add new systems or modify existing ones
@@ -41,13 +41,13 @@ Configure hardware support through:
 The repository includes a GitHub Actions workflow that automatically builds Stage4 images. The workflow:
 
 - Runs daily to ensure packages stay updated, and new breakages are caught early
-- Builds each target in parallel
-- Stores binary packages in S3
-- Creates new Stage4 tarballs for quick and easy paving of systems
+- Runs script checks for pull requests and builds the public XPS-9730 image from `master`
+- Reuses compatible binary packages from the shared runner cache and SourceForge
+- Publishes the image, kernel archive and audited binary packages to SourceForge
 
 # Build checkpoints
 
-Each target has an active checkpoint at `/scratch/builds/.checkpoints/<target>/active`
+Each target has an active checkpoint at `/scratch/builds/sourceforge/.checkpoints/<target>/active`
 on shared NFS storage, outside the runner's disposable filesystem. Scheduled
 builds, new commits, and retries select the unfinished checkpoint even when the
 GitHub run ID or runner changes. Builds for a target run one at a time.
@@ -82,7 +82,7 @@ Checkpoint tests run with `python3 -m unittest discover -s tests`.
    curl -fsSLO https://raw.githubusercontent.com/pgrandin/stage4/master/install.sh
    bash install.sh /dev/nvme0n1          # optional 2nd argument: target, default XPS-9730
    ```
-4. Remove the USB key and reboot. Root's password is `scrambled`; change it.
+4. Set a root password when the installer prompts, then remove the USB key and reboot.
 
 The disk gets a 1 GiB ESP and an ext4 root. The kernel boots from the ESP as an
 EFI stub (no GRUB, no initramfs) and finds root through the `root=PARTUUID=`
@@ -119,7 +119,7 @@ This project is licensed under the GNU General Public License v3.0 - see the LIC
 
 # Public distribution
 
-SourceForge hosts the public edition and its individual binary packages:
+SourceForge hosts the nightly images and individual binary packages:
 https://sourceforge.net/projects/stage4-gentoo/files/
 
 The public edition excludes Slack, Spotify and the NVIDIA CUDA toolkit. Its
@@ -130,25 +130,25 @@ After installation, explicitly add an application with
 installing, and do not produce binary packages for redistribution. Installing the
 CUDA toolkit does not enable CUDA globally for other packages.
 
-To prepare a release, copy a completed stage4 filesystem to a separate working
-directory, mount its `/proc`, `/dev`, `/var/cache` and `/var/tmp` as for the regular
-build, then run `sudo bash make-public.sh /path/to/public-copy`. This rebuilds
-changed dependencies, removes unused packages, and audits every installed
-package before archiving. A manifest is saved as
+The nightly applies the public policy before building and audits every installed
+package before archiving. To convert an older personal image, run
+`sudo bash make-public.sh /path/to/public-copy` on a separate copy with `/proc`,
+`/dev`, `/var/cache` and `/var/tmp` mounted. A manifest is saved as
 `/usr/share/stage4/installed-packages.json` inside the image. The audit uses
 Gentoo's `@FREE` licenses without personal license overrides, rejects `bindist`
 packages, and permits redistributable firmware for hardware support. Firmware
 retains its individual licenses; this is not a firmware-free distribution.
 
-Use the same audit policy to stage the public binhost, inside the Gentoo build
-environment: `python3 public_edition.py binhost /path/to/binpkgs /path/to/public-binpkgs`.
-Files are checksum-verified, excluded packages are recorded, and the `Packages`
-index contains only the staged packages. Upload package files first; publish the
-index after SourceForge has processed the files. Preserve older package files
-while clients can still reference them from an earlier index.
+Portage's binhost is https://downloads.sourceforge.net/project/stage4-gentoo/binpkgs/XPS-9730/.
+Each nightly uploads newly audited packages, then advances the `Packages` index
+after SourceForge serves those files. Older indexes can still use their original
+package files. Build logs and retry state stay on the shared runner volume.
+The publish step uses `SOURCEFORGE_SSH_KEY` from the `sourceforge` GitHub environment,
+which allows deployments from `master`.
 
-The public image locks root and clears machine identity. To install it, set
-`STAGE4_URL` to its direct tarball URL when running `install.sh`; the matching
-`.md5` must also be published. The installer prompts for a root password before
-unmounting the installation. The personal image remains the default when
-`STAGE4_URL` is unset.
+The installer reads the current image revision from
+https://downloads.sourceforge.net/project/stage4-gentoo/images/XPS-9730/latest.txt
+and checks the archive's SHA-256. Use `STAGE4_URL` with a direct tarball URL and
+its matching `.md5` to install a specific revision. The public image locks root
+and clears machine identity. The installer generates a fresh machine ID and
+prompts for a root password before unmounting the installation.
