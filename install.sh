@@ -15,7 +15,6 @@ yes=
 [[ ${1:-} == --yes ]] && { yes=1; shift; }
 disk=${1:?usage: install.sh [--yes] <disk> [target]}
 target=${2:-XPS-9730}
-url=${STAGE4_URL:-https://s3.sd.kazer.org/public-artifacts/stage4/$target/$target-stage4.tgz}
 mnt=/mnt/gentoo
 
 die() { echo "install.sh: $*" >&2; exit 1; }
@@ -26,6 +25,24 @@ if [[ -z $yes ]]; then
     read -rp "Erase everything on $disk? Type $disk to confirm: " answer
     [[ $answer == "$disk" ]] || die "aborted"
 fi
+
+# Resolve an immutable image before erasing the target, so its checksum and a
+# resumed download still refer to the same release after a nightly publishes.
+if [[ -n ${STAGE4_URL:-} ]]; then
+    url=$STAGE4_URL
+    checksum_type=md5
+    checksum_length=32
+else
+    [[ $target == XPS-9730 ]] || die "no published image for $target; set STAGE4_URL"
+    base=https://downloads.sourceforge.net/project/stage4-gentoo/images/$target
+    revision=$(curl -fsSL --retry 3 --max-time 30 "$base/latest.txt")
+    [[ $revision =~ ^[0-9]+(-[A-Za-z0-9]+)+$ ]] || die "invalid SourceForge release revision"
+    url=$base/$revision/$target-public-stage4.tgz
+    checksum_type=sha256
+    checksum_length=64
+fi
+checksum=$(curl -fsSL --retry 3 --max-time 30 "$url.$checksum_type" | cut -d' ' -f1)
+[[ $checksum =~ ^[[:xdigit:]]{$checksum_length}$ ]] || die "invalid image checksum"
 
 [[ $disk == *[0-9] ]] && part=${disk}p || part=$disk   # nvme0n1p1 vs sda1
 sgdisk --zap-all "$disk"
@@ -47,7 +64,7 @@ for try in {1..20}; do
     (( try < 20 )) || die "download failed"
     echo "download interrupted, resuming ($try)"; sleep 5
 done
-echo "$(curl -fsSL "$url.md5" | cut -d' ' -f1)  $tgz" | md5sum -c -
+printf '%s  %s\n' "$checksum" "$tgz" | "${checksum_type}sum" -c -
 tar xzpf "$tgz" --xattrs-include='*.*' --numeric-owner -C "$mnt"
 rm "$tgz"
 

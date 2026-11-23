@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - 'target/**'
   pull_request:
     branches:
       - '**'
@@ -15,10 +14,6 @@ on:
         description: Start a new filesystem instead of resuming the unfinished checkpoint
         type: boolean
         default: false
-
-env:
-  S3_ENDPOINT: https://s3.sd.kazer.org
-  S3_BUCKET: public-artifacts
 
 jobs:
   check-scripts:
@@ -54,6 +49,8 @@ jobs:
   # Main build job that uses the determined matrix
   build:
     needs: [determine-targets, check-scripts]
+    if: github.ref == 'refs/heads/master'
+    environment: sourceforge
     runs-on: [self-hosted, stage4]
     # 800 min (13h20m) was too short for a cold cache: @world (~5h) + a
     # from-source chromium (~14h on the 6-core dgaming i5) overran it and the
@@ -80,15 +77,13 @@ jobs:
       run: |
         args=()
         if [ "$FRESH" = true ]; then args+=(--fresh); fi
-        build_dir=$(python3 build_checkpoint.py "$STAGE4_TARGET" "$GITHUB_RUN_ID" "${args[@]}")
+        build_dir=$(python3 build_checkpoint.py "$STAGE4_TARGET" "$GITHUB_RUN_ID" --storage /scratch/builds/sourceforge "${args[@]}")
         printf 'build_dir=%s\nstage4_fs=%s/stage4\n' "$build_dir" "$build_dir" >> "$GITHUB_ENV"
         echo "Using persistent checkpoint: $build_dir"
 
     - name: Prepare Build Environment
       run: |
-        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip python3-venv rsync wget curl tree pipx
-        pipx install awscli
-        echo "/root/.local/bin" >> $GITHUB_PATH
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xz-utils python3-pip python3-venv rsync wget curl tree openssh-client
         wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/local/bin/yq
         chmod +x /usr/local/bin/yq
 
@@ -190,22 +185,14 @@ jobs:
 
         yq eval ".[\"${{ env.STAGE4_TARGET }}\"]" config.yml > ${{ env.stage4_fs }}/config.yml
 
-        bash setup_packages.sh ${{ env.stage4_fs }}
+        python3 public_edition.py configure "$stage4_fs"
+        bash setup_packages.sh "$stage4_fs"
 
-    - name: synchronize remote bucket
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+    - name: Mount shared binary package cache
       run: |
-        mkdir -p /dl/binpkgs/${{ env.STAGE4_TARGET }}/
-        # Seed once; never overwrite packages retained from an interrupted build.
-        if [ ! -f /dl/.${STAGE4_TARGET}-binpkgs-seeded ]; then
-          aws s3 sync --no-progress --endpoint-url ${{ env.S3_ENDPOINT }} s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ /dl/binpkgs/${{ env.STAGE4_TARGET }}/
-          touch /dl/.${STAGE4_TARGET}-binpkgs-seeded
-        fi
-        mkdir -p ${{ env.stage4_fs }}/var/cache/binpkgs
-        mkdir -p /dl/binpkgs/${{ env.STAGE4_TARGET }}
-        mountpoint -q "$stage4_fs/var/cache/binpkgs" || mount --bind /dl/binpkgs/${{ env.STAGE4_TARGET }}/ "$stage4_fs/var/cache/binpkgs"
+        cache=/dl/binpkgs/$STAGE4_TARGET
+        mkdir -p "$cache" "$stage4_fs/var/cache/binpkgs"
+        mountpoint -q "$stage4_fs/var/cache/binpkgs" || mount --bind "$cache" "$stage4_fs/var/cache/binpkgs"
 
     - name: chroot
       run: |
@@ -216,18 +203,6 @@ jobs:
         sync -f "$build_dir"
         touch "$build_dir/bootstrap.done"
 
-    - name: push back changes
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-      run: |
-        # Upload additively; another runner may have additional valid packages.
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "S3 sync succeeded"
-        else
-            echo "S3 sync failed"
-        fi
-
     - name: build kernel
       run: |
         if [ -f "$build_dir/kernel.done" ]; then exit 0; fi
@@ -235,13 +210,6 @@ jobs:
         chroot ${{ env.stage4_fs }} /bin/bash /01_kernel.sh ${{ env.STAGE4_TARGET }}
         sync -f "$build_dir"
         touch "$build_dir/kernel.done"
-
-    - name: push kernel archive to s3
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-      run: |
-        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} ${{ env.stage4_fs }}/kernel-*.tgz s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/
 
     - name: quirks
       run: |
@@ -285,17 +253,6 @@ jobs:
         sync -f "$build_dir"
         touch "$build_dir/world.done"
 
-    - name: push back changes
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-      run: |
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "S3 sync succeeded"
-        else
-            echo "S3 sync failed"
-        fi
-
     - name: configure stage4
       run: |
         cp chroot/04_configure.sh ${{ env.stage4_fs }}/04_configure.sh
@@ -311,95 +268,33 @@ jobs:
         cp chroot/06_validate.sh ${{ env.stage4_fs }}/06_validate.sh
         chroot ${{ env.stage4_fs }} /bin/bash /06_validate.sh
 
-    - name: push back binpkgs
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+    - name: Audit public image and prepare publishing files
       run: |
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "S3 sync succeeded"
-        else
-            echo "S3 sync failed"
-        fi
+        bash make-public.sh "$stage4_fs" --finalize
+        release="$build_dir/var-tmp/sourceforge"
+        mkdir -p "$release/binpkgs"
+        curl -fsSL --retry 3 --max-time 60 \
+          "https://downloads.sourceforge.net/project/stage4-gentoo/binpkgs/$STAGE4_TARGET/Packages?run=$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
+          -o "$release/previous-Packages"
+        chroot "$stage4_fs" emaint binhost --fix
+        chroot "$stage4_fs" python3 /usr/local/libexec/stage4-public-edition.py \
+          binhost /var/cache/binpkgs /var/tmp/sourceforge/binpkgs \
+          --previous-index /var/tmp/sourceforge/previous-Packages
 
-    # Salvage binpkgs when the build fails or is cancelled (e.g. a long browser
-    # compile that times out) so a re-run resumes from cache instead of starting
-    # from scratch. ADDITIVE sync (no --delete): a partial build hasn't rebuilt
-    # everything yet, so pruning the binhost from incomplete state would discard
-    # good packages. Cache pruning remains local to eclean.
-    - name: salvage binpkgs (on failure/cancel)
-      if: ${{ failure() || cancelled() }}
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-      run: |
-        echo "Build did not complete cleanly — saving binpkgs built so far (additive, no prune)"
-        aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} /dl/binpkgs/${{ env.STAGE4_TARGET }}/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/binpkgs/ | grep -v '^Completed' || echo "salvage sync failed"
-
-    - name: push back portage conf
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-      run: |
-        if aws s3 sync --endpoint-url ${{ env.S3_ENDPOINT }} --delete ${{ env.stage4_fs }}/etc/portage/ s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/portage/ | tee >(grep -v '^Completed' > /dev/tty); then
-            echo "S3 sync succeeded"
-        else
-            echo "S3 sync failed"
-        fi
-
-    - name: umount chroot
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+    - name: Unmount chroot
       if: ${{ always() && env.stage4_fs != '' }}
       run: |
-        [ -n "${stage4_fs:-}" ] || exit 0
-        # Base directory for search
-        search_dir="${{ env.stage4_fs }}/var/tmp/portage"
-
-        # Find files and process them
-        if [ -d "$search_dir" ]; then
-          find "$search_dir" -type f -name "*build.log" | while read -r file; do
-            # Extract category and package from path
-            category=$(echo "$file" | awk -F'/' '{print $(NF-3)}')
-            package=$(echo "$file" | awk -F'/' '{print $(NF-2)}')
-
-            # New file name format: <category>_<package>.log
-            new_file_name="${category}_${package}.log"
-
-            # Directory where the file is located
-            dir=$(dirname "$file")
-
-            # Full path for the new file
-            new_file_path="$dir/$new_file_name"
-
-            # Rename the file
-            mv "$file" "$new_file_path"
-
-            # Upload to S3
-            aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$new_file_path" "s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/$new_file_name"
-          done
-        fi
-
-
         sync
-        for mount in ${{ env.stage4_fs }}/dev/pts ${{ env.stage4_fs }}/dev/shm ${{ env.stage4_fs }}/proc ${{ env.stage4_fs }}/dev ${{ env.stage4_fs }}/var/tmp ${{ env.stage4_fs }}/var/cache/binpkgs ${{ env.stage4_fs }}/var/cache; do
-          if mountpoint -q "$mount"; then
-            echo "Attempting lazy unmount of $mount"
-            umount -l "$mount" || echo "Failed to lazily unmount $mount."
-          else
-            echo "$mount is not a mount-point or already unmounted."
+        for mount in dev/pts dev/shm proc dev var/tmp var/cache/binpkgs var/cache; do
+          if mountpoint -q "$stage4_fs/$mount"; then
+            umount -l "$stage4_fs/$mount"
           fi
         done
 
-    - name: archive
+    - name: Publish to SourceForge
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+        SOURCEFORGE_SSH_KEY: ${{ secrets.SOURCEFORGE_SSH_KEY }}
       run: |
-        tar cfz "$build_dir/${STAGE4_TARGET}-stage4.tgz" -C ${{ env.stage4_fs }} .
-        (cd "$build_dir" && md5sum "${STAGE4_TARGET}-stage4.tgz" > "${STAGE4_TARGET}-stage4.tgz.md5")
-        cat "$build_dir/${STAGE4_TARGET}-stage4.tgz.md5"
-        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${STAGE4_TARGET}-stage4.tgz" s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/${STAGE4_TARGET}-stage4.tgz
-        aws s3 cp --endpoint-url ${{ env.S3_ENDPOINT }} "$build_dir/${STAGE4_TARGET}-stage4.tgz.md5" s3://${{ env.S3_BUCKET }}/stage4/${STAGE4_TARGET}/${STAGE4_TARGET}-stage4.tgz.md5
+        bash publish-sourceforge.sh "$STAGE4_TARGET" "$stage4_fs" \
+          "$build_dir/var-tmp/sourceforge" "$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
         touch "$build_dir/published.done"
