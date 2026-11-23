@@ -76,10 +76,14 @@ for file in "$bundle"/* "$root"/kernel-*.tgz; do
 done
 
 "${upload[@]}" "$staged/excluded-packages.json" "$host:$project/$binhost_path/"
+gzip -n -c "$staged/Packages" > "$staged/Packages.gz"
 "${upload[@]}" --checksum "$staged/Packages" "$host:$project/$binhost_path/"
+"${upload[@]}" --checksum "$staged/Packages.gz" "$host:$project/$binhost_path/"
 for ((attempt=1; attempt<=40; attempt++)); do
-    if curl -fsSL --max-time 20 "$downloads/$binhost_path/Packages?run=$revision-$attempt" \
-        -o "$release/Packages.remote" && cmp -s "$staged/Packages" "$release/Packages.remote"; then
+    if curl -fsSL --max-time 60 "$downloads/$binhost_path/Packages?run=$revision-$attempt" \
+        -o "$release/Packages.remote" && cmp -s "$staged/Packages" "$release/Packages.remote" &&
+        curl -fsSL --max-time 60 "$downloads/$binhost_path/Packages.gz?run=$revision-$attempt" \
+        -o "$release/Packages.remote.gz" && cmp -s "$staged/Packages.gz" "$release/Packages.remote.gz"; then
         printf '%s\n' "$revision" > "$release/latest.txt"
         "${upload[@]}" --checksum "$release/latest.txt" "$host:$project/images/$target/"
         break
